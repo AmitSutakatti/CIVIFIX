@@ -987,7 +987,7 @@ const ComplaintDetailsModal = ({
                 {complaint.images.map((img, idx) => (
                   <img
                     key={idx}
-                    src={`http://localhost:8000${img.url}`}
+                    src={img.url?.startsWith('http') ? img.url : `http://localhost:8000${img.url}`}
                     alt={`Complaint ${idx + 1}`}
                     className="w-full h-32 object-cover rounded-lg"
                   />

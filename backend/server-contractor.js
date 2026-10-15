@@ -94,4 +94,3 @@ mongoose
   });
 
 export default app;
-

@@ -432,9 +432,9 @@ const ComplaintReviewModal = ({
       {panel === 'fake' && (
         <NestedDialog title="Mark complaint as fake" onClose={() => setPanel(null)}>
           <p className="text-sm text-red-800 bg-red-50 border border-red-100 rounded p-3 mb-3">
-            This adds 1 demerit point to the reporter
+            This deducts 3 reward points and adds 3 demerit points to the reporter
             {penaltyPreview
-              ? ` (${penaltyPreview.currentPoints} → ${penaltyPreview.afterFake}). At ${penaltyPreview.blockThreshold} points the account is blocked for ${penaltyPreview.blockDays} days.`
+              ? ` (${penaltyPreview.currentPoints} → ${penaltyPreview.afterFake} demerit points). The account is blocked for ${penaltyPreview.blockDays} days after ${penaltyPreview.fakeComplaintBlockThreshold} confirmed fake complaints (${penaltyPreview.fakeComplaintCount} → ${penaltyPreview.afterFakeComplaintCount}).`
               : '.'}
           </p>
           <div className="space-y-2 text-sm mb-3">

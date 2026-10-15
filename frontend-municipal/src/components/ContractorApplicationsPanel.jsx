@@ -51,7 +51,11 @@ const ContractorApplicationsPanel = () => {
     load();
   }, []);
 
-  const certUrl = (path) => (path ? `${apiOrigin}${path}` : null);
+  const certUrl = (filePath) => {
+    if (!filePath) return null;
+    if (filePath.startsWith('http')) return filePath;
+    return `${apiOrigin}${filePath}`;
+  };
 
   const submitVerify = async () => {
     if (!selected || !verifyAction) return;

@@ -38,6 +38,9 @@ export const protect = async (req, res, next) => {
       }
 
       await clearExpiredCitizenBlock(req.user);
+      if (isCitizenBlocked(req.user)) {
+        return res.status(403).json(citizenBlockPayload(req.user));
+      }
 
       next();
     } catch (error) {
@@ -67,7 +70,7 @@ export const authorize = (...roles) => {
   };
 };
 
-/** Citizens with confirmed fake-report blocks cannot file new complaints. */
+/** Citizens with an active fake-report block cannot access protected APIs. */
 export const requireActiveCitizen = (req, res, next) => {
   if (req.user.role !== 'user') {
     return next();
@@ -94,4 +97,3 @@ export const requireEligibleContractor = (req, res, next) => {
   }
   next();
 };
-

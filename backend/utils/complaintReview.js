@@ -4,11 +4,12 @@ export const REVIEW_CONFIG = {
   duplicateRadiusMeters: 50,
   highVolumeHours: 24,
   highVolumeThreshold: 5,
-  demeritsPerFake: 1,
-  blockThreshold: 3,
+  demeritsPerFake: 3,
+  fakeComplaintBlockThreshold: 3,
   blockDays: 7,
   registrationBonusPoints: 20,
-  fakeRewardPenalty: 20,
+  fakeRewardPenalty: 3,
+  verifiedComplaintReward: 5,
 };
 
 export function haversineKm(lat1, lon1, lat2, lon2) {
@@ -37,8 +38,8 @@ export function citizenBlockPayload(user) {
     success: false,
     code: 'ACCOUNT_BLOCKED',
     message: until
-      ? `Your account is temporarily blocked until ${until.toLocaleString()} because of repeated confirmed fake reports.`
-      : 'Your account is temporarily blocked because of repeated confirmed fake reports.',
+      ? `Your account is frozen until ${until.toLocaleString()} because of 3 confirmed fake complaints.`
+      : 'Your account is frozen because of 3 confirmed fake complaints.',
     blockedUntil: user.blockedUntil,
     demeritPoints: user.demeritPoints || 0,
   };
@@ -164,7 +165,7 @@ export async function applyFakePenalty(user) {
   user.rewardPoints = beforePoints - deducted;
 
   let blocked = false;
-  if (user.demeritPoints >= REVIEW_CONFIG.blockThreshold) {
+  if (user.fakeComplaintCount >= REVIEW_CONFIG.fakeComplaintBlockThreshold) {
     const until = new Date();
     until.setDate(until.getDate() + REVIEW_CONFIG.blockDays);
     user.blockedUntil = until;
@@ -181,6 +182,15 @@ export async function applyFakePenalty(user) {
     blocked,
     rewardPoints: user.rewardPoints,
     rewardPointsDeducted: deducted,
+  };
+}
+
+export async function awardVerifiedComplaintReward(user) {
+  user.rewardPoints = (user.rewardPoints || 0) + REVIEW_CONFIG.verifiedComplaintReward;
+  await user.save();
+  return {
+    rewardPoints: user.rewardPoints,
+    rewardPointsAwarded: REVIEW_CONFIG.verifiedComplaintReward,
   };
 }
 

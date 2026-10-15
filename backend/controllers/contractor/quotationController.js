@@ -2,6 +2,7 @@ import Quotation from '../../models/Quotation.js';
 import Complaint from '../../models/Complaint.js';
 import User from '../../models/User.js';
 import { generateQuotationPdf } from '../../services/quotationPdfService.js';
+import { saveUpload } from '../../utils/imageStorage.js';
 
 function safeJsonParse(value, fallback) {
   if (value == null) return fallback;
@@ -79,7 +80,7 @@ export const createQuotation = async (req, res) => {
       other,
       taxRate,
       pdfUrl,
-      contractorSignatureUrl: req.file?.filename ? `/uploads/${req.file.filename}` : '',
+      contractorSignatureUrl: (await saveUpload(req.file, 'signatures'))?.url || '',
       status: 'submitted',
       submittedAt: new Date(),
     });

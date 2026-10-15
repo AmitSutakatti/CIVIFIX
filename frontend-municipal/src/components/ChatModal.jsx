@@ -171,13 +171,21 @@ const ChatModal = ({ complaint, onClose }) => {
                         <div key={idx} className="rounded overflow-hidden">
                           {isImage(attachment.url) ? (
                             <img
-                              src={`http://localhost:8000${attachment.url}`}
+                              src={
+                                attachment.url?.startsWith('http')
+                                  ? attachment.url
+                                  : `http://localhost:8000${attachment.url}`
+                              }
                               alt={`Attachment ${idx + 1}`}
                               className="max-w-full h-auto rounded"
                             />
                           ) : (
                             <a
-                              href={`http://localhost:8000${attachment.url}`}
+                              href={
+                                attachment.url?.startsWith('http')
+                                  ? attachment.url
+                                  : `http://localhost:8000${attachment.url}`
+                              }
                               target="_blank"
                               rel="noopener noreferrer"
                               className="flex items-center space-x-2 p-2 bg-black bg-opacity-20 rounded hover:bg-opacity-30"

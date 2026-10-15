@@ -1,48 +1,10 @@
 import ChatMessage from '../../models/Chat.js';
 import Complaint from '../../models/Complaint.js';
 import User from '../../models/User.js';
-import multer from 'multer';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import fs from 'fs';
+import { uploadChat } from '../../middleware/uploadMiddleware.js';
+import { saveUploads } from '../../utils/imageStorage.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, '../../uploads/chat');
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  },
-});
-
-const upload = multer({
-  storage: storage,
-  limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB
-  },
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
-    
-    if (mimetype && extname) {
-      return cb(null, true);
-    } else {
-      cb(new Error('Invalid file type. Only images, PDF, and documents are allowed.'));
-    }
-  },
-});
-
-export const uploadMiddleware = upload.array('files', 5); // Max 5 files
+export const uploadMiddleware = uploadChat.array('files', 5);
 
 // @desc    Get chat messages for a complaint
 // @route   GET /api/chat/:complaintId
@@ -142,18 +104,13 @@ export const sendMessage = async (req, res) => {
       });
     }
 
-    // Process file uploads
-    const attachments = [];
-    if (req.files && req.files.length > 0) {
-      req.files.forEach((file) => {
-        attachments.push({
-          url: `/uploads/chat/${file.filename}`,
-          filename: file.originalname,
-          mimetype: file.mimetype,
-          size: file.size,
-        });
-      });
-    }
+    const stored = await saveUploads(req.files || [], 'chat');
+    const attachments = stored.map((file, index) => ({
+      url: file.url,
+      filename: file.originalName || req.files[index]?.originalname,
+      mimetype: req.files[index]?.mimetype,
+      size: req.files[index]?.size,
+    }));
 
     // Create chat message
     const chatMessage = await ChatMessage.create({

@@ -1,5 +1,5 @@
-import path from 'path';
 import User from '../../models/User.js';
+import { saveUpload } from '../../utils/imageStorage.js';
 
 // @desc    Register as contractor (details + degree certificate) — pending municipal review
 // @route   POST /api/auth/contractor/register
@@ -32,7 +32,8 @@ export const registerContractor = async (req, res) => {
       });
     }
 
-    const publicPath = `/uploads/${path.basename(req.file.path)}`;
+    const stored = await saveUpload(req.file, 'certificates');
+    const publicPath = stored?.url;
 
     const user = await User.create({
       name: name.trim(),

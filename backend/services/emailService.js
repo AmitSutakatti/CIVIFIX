@@ -270,6 +270,7 @@ export const sendComplaintVerificationEmail = async (to, complaintData) => {
     municipalOfficePhone = '',
     priority = 'medium',
     resolutionTime = '2-4 working days',
+    rewardPointsAwarded = 0,
   } = complaintData;
 
   const subject = `🏛️ CIVICFIX - Your ${category} Complaint Has Been Verified`;
@@ -355,6 +356,12 @@ export const sendComplaintVerificationEmail = async (to, complaintData) => {
         <div class="complaint-id">
           <strong>📋 Complaint ID:</strong> ${complaintId}
         </div>
+
+        ${
+          rewardPointsAwarded > 0
+            ? `<p style="background:#fef3c7;padding:12px;border-radius:5px;"><strong>${rewardPointsAwarded} CivicFix reward points have been added to your account.</strong></p>`
+            : ''
+        }
         
         <div class="steps">
           <h3>📝 Next Steps:</h3>
@@ -422,6 +429,8 @@ export const sendFakeComplaintEmail = async (to, data = {}) => {
     remarks = '',
     pointsDeducted = 0,
     pointsBalance = 0,
+    demeritPoints = 0,
+    fakeComplaintCount = 0,
     blocked = false,
     blockedUntil = null,
   } = data;
@@ -436,8 +445,10 @@ export const sendFakeComplaintEmail = async (to, data = {}) => {
       <p><strong>Reason:</strong> ${reasonLabel}</p>
       ${remarks ? `<p><strong>Officer remarks:</strong> ${remarks}</p>` : ''}
       <div style="background:#fee2e2;border-left:4px solid #dc2626;padding:16px;border-radius:6px;margin:20px 0;">
-        <p style="margin:0;"><strong>Points debited from your wallet:</strong> ${pointsDeducted}</p>
+        <p style="margin:0;"><strong>CivicFix reward points deducted:</strong> ${pointsDeducted}</p>
         <p style="margin:8px 0 0;"><strong>Current CivicFix points:</strong> ${pointsBalance}</p>
+        <p style="margin:8px 0 0;"><strong>Demerit points:</strong> ${demeritPoints}</p>
+        <p style="margin:8px 0 0;"><strong>Confirmed fake complaints:</strong> ${fakeComplaintCount}</p>
       </div>
       ${
         blocked

@@ -20,7 +20,7 @@ const RegistrationBonusModal = ({ points = 20, onClose }) => {
           registering.
         </p>
         <p className="mt-2 text-sm text-gray-500">
-          Your points are shown on the dashboard. Confirmed fake complaints will deduct points.
+          Your points are shown on the dashboard. Officer-confirmed fake complaints deduct reward points.
         </p>
         <button type="button" onClick={onClose} className="btn-primary mt-6 w-full">
           Got it

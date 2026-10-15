@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 import PortalLogo from './PortalLogo';
 
 const UserNavbar = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, fetchUser } = useAuth();
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -15,7 +15,10 @@ const UserNavbar = () => {
 
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000); // Fetch every 30 seconds
+    const interval = setInterval(() => {
+      fetchNotifications();
+      fetchUser();
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -173,4 +176,3 @@ const UserNavbar = () => {
 };
 
 export default UserNavbar;
-

@@ -118,9 +118,10 @@ cd frontend-municipal && npm run dev
 
 ### Backend `.env` (Shared)
 ```env
-PORT=5000                    # User portal backend (server-user.js uses USER_PORT)
 USER_PORT=5000               # User portal backend port
 MUNICIPAL_PORT=8000          # Municipal portal backend port
+CONTRACTOR_PORT=8001         # Contractor portal backend port
+# Each portal server uses its role-specific variable above. Avoid a shared PORT setting.
 MONGODB_URI=mongodb://localhost:27017/civicfix
 JWT_SECRET=your_secret_key
 JWT_EXPIRE=30d
@@ -134,6 +135,11 @@ SMTP_SECURE=false
 SMTP_USER=your-gmail@gmail.com
 SMTP_PASS=your-gmail-app-password
 SMTP_FROM=CivicFix <your-gmail@gmail.com>
+
+# ImageKit (complaint photos, certificates, chat files). If unset, files stay on local disk.
+IMAGEKIT_PUBLIC_KEY=
+IMAGEKIT_PRIVATE_KEY=
+IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your_id
 ```
 
 ---

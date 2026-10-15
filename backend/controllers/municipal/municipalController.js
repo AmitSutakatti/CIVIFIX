@@ -10,8 +10,10 @@ import {
   sendContractorPortalReadyEmail,
 } from '../../services/emailService.js';
 import { getCategoryPriority, getResolutionTime } from '../../utils/categoryPriority.js';
+import { saveUpload } from '../../utils/imageStorage.js';
 import {
   applyFakePenalty,
+  awardVerifiedComplaintReward,
   computeReviewSignals,
   getReporterStats,
   haversineKm,
@@ -403,7 +405,25 @@ export const verifyComplaint = async (req, res) => {
       });
     }
 
+    let reward = null;
     if (action === 'verify') {
+      if (complaint.isFake) {
+        return res.status(400).json({
+          success: false,
+          message: 'A complaint already marked fake cannot be verified.',
+        });
+      }
+
+      if (!complaint.verificationRewardAwarded) {
+        const wasPreviouslyVerified =
+          complaint.status === 'Verified' ||
+          complaint.statusHistory.some((entry) => entry.status === 'Verified');
+        if (!wasPreviouslyVerified) {
+          reward = await awardVerifiedComplaintReward(complaint.user);
+        }
+        complaint.verificationRewardAwarded = true;
+      }
+
       // Set priority if not already set (based on category)
       if (!complaint.priority) {
         complaint.priority = getCategoryPriority(complaint.category);
@@ -418,6 +438,7 @@ export const verifyComplaint = async (req, res) => {
         updatedBy: officer.name,
         note: reason || 'Complaint verified by municipal officer',
       });
+      await complaint.save();
 
       // Create notification
       await Notification.create({
@@ -427,6 +448,16 @@ export const verifyComplaint = async (req, res) => {
         message: `Your ${complaint.category} complaint has been verified and is being processed.`,
         type: 'status_update',
       });
+
+      if (reward) {
+        await Notification.create({
+          user: complaint.user._id,
+          complaint: complaint._id,
+          title: 'CivicFix points awarded',
+          message: `Your complaint was verified. ${reward.rewardPointsAwarded} CivicFix reward points were added (balance ${reward.rewardPoints}).`,
+          type: 'status_update',
+        });
+      }
 
       // Send email notification to the complainant (if email exists)
       const userEmail = complaint.user?.email;
@@ -451,6 +482,7 @@ export const verifyComplaint = async (req, res) => {
           municipalOfficePhone: municipalOffice?.contact?.phone || '',
           priority: priority,
           resolutionTime: resolutionTime,
+          rewardPointsAwarded: reward?.rewardPointsAwarded || 0,
         };
         
         console.log(`[Verify Complaint] 📤 Calling sendComplaintVerificationEmail function...`);
@@ -484,6 +516,7 @@ export const verifyComplaint = async (req, res) => {
         updatedBy: officer.name,
         note: reason || 'Complaint rejected by municipal officer',
       });
+      await complaint.save();
 
       // Create notification
       await Notification.create({
@@ -500,12 +533,15 @@ export const verifyComplaint = async (req, res) => {
       });
     }
 
-    await complaint.save();
-
     res.status(200).json({
       success: true,
-      message: `Complaint ${action === 'verify' ? 'verified' : 'rejected'} successfully`,
-      data: { complaint },
+      message:
+        action === 'verify'
+          ? reward
+            ? `Complaint verified. ${reward.rewardPointsAwarded} reward points were awarded.`
+            : 'Complaint verified successfully'
+          : 'Complaint rejected successfully',
+      data: { complaint, reward },
     });
   } catch (error) {
     res.status(500).json({
@@ -1270,6 +1306,10 @@ async function buildReviewPayload(complaint) {
     ? await getReporterStats(complaint.user._id)
     : { totalComplaints: 0, fakeComplaints: 0 };
   const demeritPoints = complaint.user?.demeritPoints || 0;
+  const fakeComplaintCount = Math.max(
+    complaint.user?.fakeComplaintCount || 0,
+    reporterStats.fakeComplaints || 0
+  );
   return {
     complaint,
     reviewSignals: review.flags,
@@ -1277,16 +1317,19 @@ async function buildReviewPayload(complaint) {
     reporterStats: {
       ...reporterStats,
       demeritPoints,
-      fakeComplaintCount: complaint.user?.fakeComplaintCount || reporterStats.fakeComplaints,
+      fakeComplaintCount,
       blockedUntil: complaint.user?.blockedUntil || null,
       rewardPoints: complaint.user?.rewardPoints || 0,
     },
     penaltyPreview: {
       currentPoints: demeritPoints,
       afterFake: demeritPoints + REVIEW_CONFIG.demeritsPerFake,
-      wouldBlock: demeritPoints + REVIEW_CONFIG.demeritsPerFake >= REVIEW_CONFIG.blockThreshold,
+      fakeComplaintCount,
+      afterFakeComplaintCount: fakeComplaintCount + 1,
+      wouldBlock:
+        fakeComplaintCount + 1 >= REVIEW_CONFIG.fakeComplaintBlockThreshold,
       blockDays: REVIEW_CONFIG.blockDays,
-      blockThreshold: REVIEW_CONFIG.blockThreshold,
+      fakeComplaintBlockThreshold: REVIEW_CONFIG.fakeComplaintBlockThreshold,
     },
   };
 }
@@ -1420,7 +1463,8 @@ export const submitFieldVerification = async (req, res) => {
 
     let photoUrl = complaint.fieldVerification?.photoUrl;
     if (req.file) {
-      photoUrl = `/uploads/${req.file.filename}`;
+      const stored = await saveUpload(req.file, 'field-verification');
+      photoUrl = stored?.url || photoUrl;
     }
 
     const lat = latitude != null ? parseFloat(latitude) : null;
@@ -1500,6 +1544,14 @@ export const markComplaintFake = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Reporter not found' });
     }
 
+    const existingFakeComplaintCount = await Complaint.countDocuments({
+      user: reporter._id,
+      isFake: true,
+    });
+    reporter.fakeComplaintCount = Math.max(
+      reporter.fakeComplaintCount || 0,
+      existingFakeComplaintCount
+    );
     const penalty = await applyFakePenalty(reporter);
 
     complaint.status = 'Closed';
@@ -1523,8 +1575,8 @@ export const markComplaintFake = async (req, res) => {
       complaint: complaint._id,
       title: penalty.blocked ? 'Account temporarily blocked' : 'Complaint marked as fake',
       message: penalty.blocked
-        ? `A municipal officer confirmed this report as fake. ${penalty.rewardPointsDeducted} CivicFix points were deducted (balance ${penalty.rewardPoints}). You now have ${penalty.demeritPoints} demerit points and your account is blocked until ${new Date(penalty.blockedUntil).toLocaleString()}.`
-        : `A municipal officer confirmed this report as fake. ${penalty.rewardPointsDeducted} CivicFix points were deducted (balance ${penalty.rewardPoints}). You received 1 demerit point (now ${penalty.demeritPoints}/${REVIEW_CONFIG.blockThreshold}).`,
+        ? `A municipal officer confirmed this report as fake. ${penalty.rewardPointsDeducted} CivicFix reward points were deducted (balance ${penalty.rewardPoints}). You now have ${penalty.demeritPoints} demerit points and ${penalty.fakeComplaintCount} confirmed fake complaints. Your account is blocked until ${new Date(penalty.blockedUntil).toLocaleString()}.`
+        : `A municipal officer confirmed this report as fake. ${penalty.rewardPointsDeducted} CivicFix reward points were deducted (balance ${penalty.rewardPoints}). You received ${REVIEW_CONFIG.demeritsPerFake} demerit points (now ${penalty.demeritPoints}) and have ${penalty.fakeComplaintCount} confirmed fake complaints.`,
       type: 'status_update',
     });
 
@@ -1541,6 +1593,8 @@ export const markComplaintFake = async (req, res) => {
           remarks: remarks.trim(),
           pointsDeducted: penalty.rewardPointsDeducted || 0,
           pointsBalance: penalty.rewardPoints || 0,
+          demeritPoints: penalty.demeritPoints,
+          fakeComplaintCount: penalty.fakeComplaintCount,
           blocked: penalty.blocked,
           blockedUntil: penalty.blockedUntil,
         });
@@ -1552,8 +1606,8 @@ export const markComplaintFake = async (req, res) => {
     res.status(200).json({
       success: true,
       message: penalty.blocked
-        ? 'Complaint marked fake. Reporter reached the demerit limit and is blocked for 7 days.'
-        : 'Complaint marked fake. 1 demerit point was added to the reporter.',
+        ? 'Complaint marked fake. Reporter has 3 confirmed fake complaints and is blocked for 7 days.'
+        : `Complaint marked fake. ${REVIEW_CONFIG.demeritsPerFake} demerit points were added to the reporter.`,
       data: {
         complaint,
         penalty: {

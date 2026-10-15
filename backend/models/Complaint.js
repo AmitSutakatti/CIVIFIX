@@ -93,6 +93,10 @@ const complaintSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    verificationRewardAwarded: {
+      type: Boolean,
+      default: false,
+    },
     closedReason: {
       type: String,
       enum: ['fake', 'duplicate', 'other'],
@@ -209,4 +213,3 @@ complaintSchema.pre('save', function (next) {
 const Complaint = mongoose.model('Complaint', complaintSchema);
 
 export default Complaint;
-

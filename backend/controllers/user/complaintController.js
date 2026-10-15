@@ -5,6 +5,7 @@ import {
   computeReviewSignals,
   persistReviewFlagsOnNearby,
 } from '../../utils/complaintReview.js';
+import { saveUploads } from '../../utils/imageStorage.js';
 
 // @desc    Create new complaint
 // @route   POST /api/complaints
@@ -21,16 +22,11 @@ export const createComplaint = async (req, res) => {
       });
     }
 
-    // Handle image uploads
-    const images = [];
-    if (req.files && req.files.length > 0) {
-      req.files.forEach((file) => {
-        images.push({
-          url: `/uploads/${file.filename}`,
-          publicId: null, // For local storage, set to null. For Cloudinary, use public_id
-        });
-      });
-    }
+    const storedImages = await saveUploads(req.files || [], 'complaints');
+    const images = storedImages.map((file) => ({
+      url: file.url,
+      publicId: file.publicId,
+    }));
 
     const review = await computeReviewSignals({
       userId: req.user.id,
