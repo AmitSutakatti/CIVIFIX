@@ -1,0 +1,50 @@
+{
+  "name": "civicfix-backend",
+  "version": "1.0.0",
+  "description": "Backend API for CivicFix - Public Issue Reporting System",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "start:user": "node server-user.js",
+    "dev:user": "nodemon server-user.js",
+    "start:municipal": "node server-municipal.js",
+    "dev:municipal": "nodemon server-municipal.js",
+    "start:contractor": "node server-contractor.js",
+    "dev:contractor": "node scripts/start-contractor-dev.js",
+    "kill:8001": "node scripts/kill-port.js 8001",
+    "kill:8000": "node scripts/kill-port.js 8000",
+    "kill:5000": "node scripts/kill-port.js 5000",
+    "seed:municipal": "node scripts/seedMunicipalData.js",
+    "seed:contractors": "node scripts/seedContractors.js",
+    "test:openai": "node scripts/testOpenAI.js",
+    "test:openai:wait": "node scripts/testOpenAIWithWait.js"
+  },
+  "keywords": [
+    "civic",
+    "issue",
+    "reporting"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@emailjs/nodejs": "^5.0.2",
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^1.41.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-validator": "^7.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.0.3",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^9.1.0",
+    "openai": "^4.104.0",
+    "pdfkit": "^0.17.2",
+    "twilio": "^4.23.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}

@@ -1,0 +1,160 @@
+import Complaint from '../../models/Complaint.js';
+import Notification from '../../models/Notification.js';
+import { getCategoryPriority } from '../../utils/categoryPriority.js';
+import {
+  computeReviewSignals,
+  persistReviewFlagsOnNearby,
+} from '../../utils/complaintReview.js';
+
+// @desc    Create new complaint
+// @route   POST /api/complaints
+// @access  Private
+export const createComplaint = async (req, res) => {
+  try {
+    const { category, description, latitude, longitude, address } = req.body;
+
+    // Validation
+    if (!category || !description || !latitude || !longitude) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide category, description, and location',
+      });
+    }
+
+    // Handle image uploads
+    const images = [];
+    if (req.files && req.files.length > 0) {
+      req.files.forEach((file) => {
+        images.push({
+          url: `/uploads/${file.filename}`,
+          publicId: null, // For local storage, set to null. For Cloudinary, use public_id
+        });
+      });
+    }
+
+    const review = await computeReviewSignals({
+      userId: req.user.id,
+      category,
+      latitude,
+      longitude,
+      includeCurrentInVolume: true,
+    });
+
+    // Create complaint with priority based on category
+    const complaint = await Complaint.create({
+      user: req.user.id,
+      category,
+      description,
+      images,
+      location: {
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude),
+        address: address || '',
+      },
+      status: 'Submitted',
+      priority: getCategoryPriority(category), // Set priority based on category
+      requiresReview: review.requiresReview,
+      reviewFlags: review.flags,
+    });
+
+    if (review.nearbySummaries.length) {
+      await persistReviewFlagsOnNearby(review.nearbySummaries);
+    }
+
+    // Create notification
+    await Notification.create({
+      user: req.user.id,
+      complaint: complaint._id,
+      title: 'Complaint Submitted',
+      message: `Your ${category} complaint has been submitted successfully.`,
+      type: 'status_update',
+    });
+
+    const reviewNotice = review.requiresReview
+      ? 'Your report was submitted. Similar nearby complaints or recent volume were flagged for municipal review — this does not mean the report is fake.'
+      : null;
+
+    res.status(201).json({
+      success: true,
+      message: reviewNotice || 'Complaint created successfully',
+      data: {
+        complaint,
+        requiresReview: review.requiresReview,
+        reviewFlags: review.flags,
+        reviewNotice,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error creating complaint',
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Get user's complaints
+// @route   GET /api/complaints/my
+// @access  Private
+export const getMyComplaints = async (req, res) => {
+  try {
+    const complaints = await Complaint.find({ user: req.user.id })
+      .sort({ createdAt: -1 })
+      .populate('assignedOfficer', 'name email')
+      .populate('assignedContractor', 'name email');
+
+    res.status(200).json({
+      success: true,
+      count: complaints.length,
+      data: { complaints },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching complaints',
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Get single complaint
+// @route   GET /api/complaints/:id
+// @access  Private
+export const getComplaint = async (req, res) => {
+  try {
+    const complaint = await Complaint.findById(req.params.id)
+      .populate('user', 'name email phone')
+      .populate('assignedOfficer', 'name email phone')
+      .populate('assignedContractor', 'name email phone');
+
+    if (!complaint) {
+      return res.status(404).json({
+        success: false,
+        message: 'Complaint not found',
+      });
+    }
+
+    // Check if user owns the complaint or is an officer/contractor
+    if (
+      complaint.user._id.toString() !== req.user.id &&
+      req.user.role !== 'officer' &&
+      req.user.role !== 'contractor'
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to access this complaint',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: { complaint },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching complaint',
+      error: error.message,
+    });
+  }
+};
