@@ -1,0 +1,81 @@
+{
+  "expo": {
+    "name": "CivicFix",
+    "slug": "civicfix-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "civicfix",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": false,
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1A56DB"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.civicfix.mobile",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "CivicFix needs your location to tag the complaint to the correct area.",
+        "NSLocationAlwaysUsageDescription": "CivicFix needs your location to tag the complaint to the correct area.",
+        "NSCameraUsageDescription": "CivicFix uses your camera to photograph the civic issue.",
+        "NSPhotoLibraryUsageDescription": "CivicFix needs access to your photos to attach images to complaints."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#1A56DB"
+      },
+      "package": "com.civicfix.mobile",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "CivicFix needs access to your photos to attach images to complaints.",
+          "cameraPermission": "CivicFix uses your camera to photograph the civic issue."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "CivicFix needs your location to tag the complaint to the correct area."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#1A56DB",
+          "sounds": []
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": false
+    },
+    "extra": {
+      "eas": {
+        "projectId": "your-eas-project-id-here"
+      }
+    }
+  }
+}
