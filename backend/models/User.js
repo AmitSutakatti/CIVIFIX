@@ -26,6 +26,10 @@ const userSchema = new mongoose.Schema(
       trim: true,
       index: true,
     },
+    profilePhotoUrl: {
+      type: String,
+      trim: true,
+    },
     rewardPoints: {
       type: Number,
       default: 0,

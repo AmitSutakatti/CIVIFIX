@@ -22,6 +22,7 @@ import StepProgress from '../../components/report/StepProgress';
 import CategoryIcon from '../../components/report/CategoryIcon';
 import { getComplaintDraft, updateComplaintDraft, useComplaintDraft } from '../../state/complaintDraft';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
+import BrandLogo from '../../components/branding/BrandLogo';
 
 function firstParam(value) {
   return Array.isArray(value) ? value[0] : value;
@@ -114,6 +115,7 @@ export default function ComplaintDetailsScreen() {
           <ArrowLeft size={20} color={COLORS.gray900} />
         </Pressable>
         <Text style={styles.headerTitle}>Describe the issue</Text>
+        <BrandLogo size={42} />
       </View>
       <StepProgress step={2} total={4} label="Title and description" />
 

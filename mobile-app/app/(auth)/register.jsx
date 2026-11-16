@@ -18,6 +18,7 @@ import { useAuth } from '../../context/AuthContext';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
 import { User, Mail, Phone, Lock, Eye, EyeOff } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
+import BrandLogo from '../../components/branding/BrandLogo';
 
 // ── Validation schema ─────────────────────────────────────
 // Phone validation mirrors isValidMobile() in backend/utils/phone.js
@@ -83,9 +84,7 @@ export default function RegisterScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.logoBox}>
-            <Text style={styles.logoText}>CF</Text>
-          </View>
+          <BrandLogo size={88} style={styles.logoBox} />
           <Text style={styles.title}>Create Account</Text>
           <Text style={styles.subtitle}>Join CivicFix and make your city better</Text>
         </View>
@@ -216,14 +215,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: COLORS.primary },
   container: { flexGrow: 1, padding: SPACING.lg, paddingTop: SPACING.xxl },
   header: { alignItems: 'center', marginBottom: SPACING.xl },
-  logoBox: {
-    width: 64, height: 64, borderRadius: 18,
-    backgroundColor: COLORS.white, justifyContent: 'center', alignItems: 'center',
-    marginBottom: SPACING.sm,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8,
-    elevation: 8,
-  },
-  logoText: { fontSize: 24, fontWeight: '800', color: COLORS.primary },
+  logoBox: { marginBottom: SPACING.sm },
   title: { fontSize: 26, fontWeight: '800', color: COLORS.white },
   subtitle: { fontSize: 13, color: 'rgba(255,255,255,0.75)', marginTop: 4, textAlign: 'center' },
   card: {

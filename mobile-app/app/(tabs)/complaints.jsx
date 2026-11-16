@@ -16,6 +16,7 @@ import { useAuth } from '../../context/AuthContext';
 import RecentComplaintCard from '../../components/dashboard/RecentComplaintCard';
 import { complaintService } from '../../services/complaintService';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
+import BrandLogo from '../../components/branding/BrandLogo';
 
 export default function ComplaintsScreen() {
   const router = useRouter();
@@ -59,8 +60,13 @@ export default function ComplaintsScreen() {
           />
         }
       >
-        <Text style={styles.title}>My Complaints</Text>
-        <Text style={styles.subtitle}>Follow the latest status of your reports.</Text>
+        <View style={styles.heading}>
+          <BrandLogo size={48} />
+          <View style={styles.headingCopy}>
+            <Text style={styles.title}>My Complaints</Text>
+            <Text style={styles.subtitle}>Follow the latest status of your reports.</Text>
+          </View>
+        </View>
 
         {isLoading ? (
           <View style={styles.stateBox}>
@@ -102,8 +108,10 @@ export default function ComplaintsScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: COLORS.background },
   content: { paddingHorizontal: SPACING.lg },
+  heading: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginBottom: SPACING.lg },
+  headingCopy: { flex: 1 },
   title: { fontSize: 24, fontWeight: '800', color: COLORS.gray900 },
-  subtitle: { marginTop: 4, marginBottom: SPACING.lg, color: COLORS.gray600 },
+  subtitle: { marginTop: 4, color: COLORS.gray600 },
   stateBox: {
     alignItems: 'center',
     padding: SPACING.xl,

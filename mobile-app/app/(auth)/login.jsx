@@ -15,9 +15,10 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../../context/AuthContext';
-import { COLORS, FONTS, RADIUS, SPACING } from '../../constants/theme';
+import { COLORS, RADIUS, SPACING } from '../../constants/theme';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
+import BrandLogo from '../../components/branding/BrandLogo';
 
 // ── Validation schema ─────────────────────────────────────
 const loginSchema = z.object({
@@ -73,9 +74,7 @@ export default function LoginScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.logoBox}>
-            <Text style={styles.logoText}>CF</Text>
-          </View>
+          <BrandLogo size={88} style={styles.logoBox} />
           <Text style={styles.title}>CivicFix</Text>
           <Text style={styles.subtitle}>Report. Track. Resolve.</Text>
         </View>
@@ -153,7 +152,7 @@ export default function LoginScreen() {
 
           {/* Register link */}
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Don't have an account? </Text>
+            <Text style={styles.footerText}>Don&apos;t have an account? </Text>
             <Link href="/(auth)/register" asChild>
               <TouchableOpacity>
                 <Text style={styles.link}>Create Account</Text>
@@ -170,14 +169,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: COLORS.primary },
   container: { flexGrow: 1, justifyContent: 'center', padding: SPACING.lg },
   header: { alignItems: 'center', marginBottom: SPACING.xl },
-  logoBox: {
-    width: 72, height: 72, borderRadius: 20,
-    backgroundColor: COLORS.white, justifyContent: 'center', alignItems: 'center',
-    marginBottom: SPACING.sm,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8,
-    elevation: 8,
-  },
-  logoText: { fontSize: 28, fontWeight: '800', color: COLORS.primary },
+  logoBox: { marginBottom: SPACING.sm },
   title: { fontSize: 32, fontWeight: '800', color: COLORS.white, letterSpacing: -0.5 },
   subtitle: { fontSize: 14, color: 'rgba(255,255,255,0.75)', marginTop: 4 },
   card: {

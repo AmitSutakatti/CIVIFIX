@@ -8,6 +8,7 @@ import {
   REVIEW_CONFIG,
 } from '../../utils/complaintReview.js';
 import { isValidMobile, normalizePhone } from '../../utils/phone.js';
+import { saveUpload } from '../../utils/imageStorage.js';
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -79,6 +80,7 @@ export const signup = async (req, res) => {
           name: user.name,
           email: user.email,
           phone: user.phone,
+          profilePhotoUrl: user.profilePhotoUrl || null,
           role: user.role,
           rewardPoints: user.rewardPoints,
           registrationBonusAwarded: user.registrationBonusAwarded,
@@ -154,6 +156,7 @@ export const login = async (req, res) => {
       name: populatedUser.name,
       email: populatedUser.email,
       phone: populatedUser.phone,
+      profilePhotoUrl: populatedUser.profilePhotoUrl || null,
       role: populatedUser.role,
     };
 
@@ -205,6 +208,7 @@ export const getMe = async (req, res) => {
       name: user.name,
       email: user.email,
       phone: user.phone,
+      profilePhotoUrl: user.profilePhotoUrl || null,
       role: user.role,
     };
 
@@ -237,6 +241,57 @@ export const getMe = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching user',
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Update current user's profile photo
+// @route   PUT /api/auth/profile/photo
+// @access  Private
+export const updateProfilePhoto = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please select a profile photo to upload',
+      });
+    }
+
+    const storedPhoto = await saveUpload(req.file, 'profiles');
+    if (!storedPhoto?.url) {
+      throw new Error('The profile photo could not be stored');
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    user.profilePhotoUrl = storedPhoto.url;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Profile photo updated successfully',
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          profilePhotoUrl: user.profilePhotoUrl,
+          role: user.role,
+        },
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Error updating profile photo',
       error: error.message,
     });
   }

@@ -30,11 +30,6 @@ export function AuthProvider({ children }) {
   const [user, setUser]         = useState(null);
   const [isLoading, setIsLoading] = useState(true); // true during initial token check
 
-  // ── On mount: check for a stored token ──────────────────
-  useEffect(() => {
-    checkStoredSession();
-  }, []);
-
   // ── Listen for 401 token-expiry events from Axios ───────
   useEffect(() => {
     const unsubscribe = onTokenExpired(() => {
@@ -44,7 +39,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   // ── Restore session from SecureStore ────────────────────
-  const checkStoredSession = async () => {
+  const checkStoredSession = useCallback(async () => {
     try {
       const token = await getToken();
       if (!token) return;
@@ -61,7 +56,12 @@ export function AuthProvider({ children }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  // ── On mount: check for a stored token ──────────────────
+  useEffect(() => {
+    Promise.resolve().then(checkStoredSession);
+  }, [checkStoredSession]);
 
   // ── Login ────────────────────────────────────────────────
   const login = useCallback(async (email, password) => {
@@ -126,6 +126,10 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  const updateUser = useCallback((updatedUser) => {
+    setUser(updatedUser);
+  }, []);
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -135,6 +139,7 @@ export function AuthProvider({ children }) {
       register,
       logout,
       refreshUser,
+      updateUser,
     }}>
       {children}
     </AuthContext.Provider>

@@ -1,6 +1,7 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Animated,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -19,8 +20,36 @@ import StatCard from '../../components/dashboard/StatCard';
 import RecentComplaintCard from '../../components/dashboard/RecentComplaintCard';
 import { COLORS, RADIUS, SHADOW, SPACING } from '../../constants/theme';
 import { summarizeComplaints } from '../../utils/dashboardStats';
+import BrandLogo from '../../components/branding/BrandLogo';
 
 const RECENT_LIMIT = 4;
+
+function entranceStyle(animation) {
+  return {
+    opacity: animation,
+    transform: [
+      {
+        translateY: animation.interpolate({
+          inputRange: [0, 1],
+          outputRange: [16, 0],
+        }),
+      },
+    ],
+  };
+}
+
+function startEntranceAnimations(animations) {
+  return Animated.stagger(
+    75,
+    animations.map((value) =>
+      Animated.timing(value, {
+        toValue: 1,
+        duration: 360,
+        useNativeDriver: true,
+      })
+    )
+  );
+}
 
 function greetingForHour(date = new Date()) {
   const hour = date.getHours();
@@ -35,6 +64,9 @@ export default function HomeScreen() {
   const { user, isAuthenticated, refreshUser } = useAuth();
   const { unreadCount } = useNotificationCount();
   const firstName = user?.name?.split(' ')[0] || 'Citizen';
+  const [entranceAnimations] = useState(() =>
+    Array.from({ length: 9 }, () => new Animated.Value(0))
+  );
 
   const {
     data: complaints = [],
@@ -48,6 +80,20 @@ export default function HomeScreen() {
     queryFn: complaintService.getMyComplaints,
     enabled: isAuthenticated,
   });
+
+  useEffect(() => {
+    const animation = startEntranceAnimations(entranceAnimations.slice(0, 2));
+    animation.start();
+    return () => animation.stop();
+  }, [entranceAnimations]);
+
+  useEffect(() => {
+    if (isLoading || isError) return undefined;
+
+    const animation = startEntranceAnimations(entranceAnimations.slice(2));
+    animation.start();
+    return () => animation.stop();
+  }, [entranceAnimations, isError, isLoading]);
 
   useFocusEffect(
     useCallback(() => {
@@ -73,9 +119,12 @@ export default function HomeScreen() {
           />
         }
       >
-        <View style={styles.headerRow}>
+        <Animated.View style={[styles.headerRow, entranceStyle(entranceAnimations[0])]}>
           <View style={styles.headerText}>
-            <Text style={styles.kicker}>CivicFix</Text>
+            <View style={styles.brandLine}>
+              <BrandLogo size={36} />
+              <Text style={styles.kicker}>CivicFix</Text>
+            </View>
             <Text style={styles.greeting}>{greetingForHour()}, {firstName}</Text>
             <Text style={styles.subtitle}>Track the issues you have reported.</Text>
           </View>
@@ -91,12 +140,14 @@ export default function HomeScreen() {
               </View>
             )}
           </Pressable>
-        </View>
+        </Animated.View>
 
-        <Pressable style={styles.reportButton} onPress={() => router.push('/(tabs)/report')}>
-          <PlusCircle size={22} color={COLORS.white} />
-          <Text style={styles.reportText}>Report a Complaint</Text>
-        </Pressable>
+        <Animated.View style={entranceStyle(entranceAnimations[1])}>
+          <Pressable style={styles.reportButton} onPress={() => router.push('/(tabs)/report')}>
+            <PlusCircle size={22} color={COLORS.white} />
+            <Text style={styles.reportText}>Report a Complaint</Text>
+          </Pressable>
+        </Animated.View>
 
         {isLoading ? (
           <View style={styles.stateBox}>
@@ -114,7 +165,7 @@ export default function HomeScreen() {
           </View>
         ) : (
           <>
-            <View style={styles.statsGrid}>
+            <Animated.View style={[styles.statsGrid, entranceStyle(entranceAnimations[2])]}>
               <View style={styles.statsRow}>
                 <StatCard
                   label="Total"
@@ -143,17 +194,17 @@ export default function HomeScreen() {
                   icon={<CheckCircle2 size={18} color={COLORS.success} />}
                 />
               </View>
-            </View>
+            </Animated.View>
 
-            <View style={styles.sectionHeader}>
+            <Animated.View style={[styles.sectionHeader, entranceStyle(entranceAnimations[3])]}>
               <Text style={styles.sectionTitle}>Recent complaints</Text>
               <Pressable onPress={() => router.push('/(tabs)/complaints')}>
                 <Text style={styles.viewAll}>View all</Text>
               </Pressable>
-            </View>
+            </Animated.View>
 
             {recent.length === 0 ? (
-              <View style={styles.emptyCard}>
+              <Animated.View style={[styles.emptyCard, entranceStyle(entranceAnimations[4])]}>
                 <Text style={styles.stateTitle}>No complaints yet</Text>
                 <Text style={styles.stateText}>
                   Report a civic issue and it will show up here with its status.
@@ -162,14 +213,18 @@ export default function HomeScreen() {
                   <PlusCircle size={16} color={COLORS.primary} />
                   <Text style={styles.retryText}>Report a Complaint</Text>
                 </Pressable>
-              </View>
+              </Animated.View>
             ) : (
-              recent.map((complaint) => (
-                <RecentComplaintCard
+              recent.map((complaint, index) => (
+                <Animated.View
                   key={complaint._id}
-                  complaint={complaint}
-                  onPress={() => router.push(`/complaint/${complaint._id}`)}
-                />
+                  style={entranceStyle(entranceAnimations[index + 5])}
+                >
+                  <RecentComplaintCard
+                    complaint={complaint}
+                    onPress={() => router.push(`/complaint/${complaint._id}`)}
+                  />
+                </Animated.View>
               ))
             )}
           </>
@@ -189,6 +244,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.lg,
   },
   headerText: { flex: 1, paddingRight: SPACING.md },
+  brandLine: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs },
   kicker: { color: COLORS.primary, fontWeight: '700', letterSpacing: 0.4, fontSize: 13 },
   greeting: { fontSize: 26, fontWeight: '800', color: COLORS.gray900, marginTop: 4 },
   subtitle: { color: COLORS.gray600, marginTop: 4, lineHeight: 20 },

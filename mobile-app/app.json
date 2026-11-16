@@ -35,6 +35,15 @@
       "expo-router",
       "expo-secure-store",
       [
+        "expo-splash-screen",
+        {
+          "image": "./assets/civicfix-logo.png",
+          "imageWidth": 250,
+          "resizeMode": "contain",
+          "backgroundColor": "#FFFFFF"
+        }
+      ],
+      [
         "expo-image-picker",
         {
           "photosPermission": "CivicFix needs access to your photos to attach images to complaints.",

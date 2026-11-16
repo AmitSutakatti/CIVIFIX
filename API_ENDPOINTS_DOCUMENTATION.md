@@ -19,11 +19,13 @@
 | `POST` | `/api/auth/signup` | Register new user account | ❌ No |
 | `POST` | `/api/auth/login` | Login user and get JWT token | ❌ No |
 | `GET` | `/api/auth/me` | Get current logged-in user profile | ✅ Yes |
+| `PUT` | `/api/auth/profile/photo` | Update the current user's profile photo | ✅ Yes |
 
 **Details:**
 - **POST `/api/auth/signup`**: Creates a new user account. Requires email, password, name, and phone.
 - **POST `/api/auth/login`**: Authenticates user and returns JWT token for subsequent requests.
 - **GET `/api/auth/me`**: Returns the profile of the currently authenticated user.
+- **PUT `/api/auth/profile/photo`**: Accepts a multipart `profilePhoto` image (JPEG, PNG, GIF, or WebP; maximum 5 MiB), stores it through the configured image-storage provider, and returns the updated profile.
 
 ---
 

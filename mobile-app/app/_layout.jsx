@@ -19,8 +19,9 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import * as SplashScreen from 'expo-splash-screen';
-import { AuthProvider } from '../context/AuthContext';
+import { AuthProvider, useAuth } from '../context/AuthContext';
 import { toastConfig } from '../components/ui/ToastConfig';
+import AppLoadingScreen from '../components/branding/AppLoadingScreen';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -55,11 +56,13 @@ export default function RootLayout() {
 
 // Separated so it can call useEffect inside a provider context
 function RootNavigator() {
+  const { isLoading } = useAuth();
+
   useEffect(() => {
-    // Hide splash screen once the layout has mounted.
-    // AuthProvider handles its own loading state internally.
-    SplashScreen.hideAsync();
+    SplashScreen.hideAsync().catch(() => {});
   }, []);
+
+  if (isLoading) return <AppLoadingScreen />;
 
   return (
     <Stack screenOptions={{ headerShown: false }}>

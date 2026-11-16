@@ -24,6 +24,7 @@ import {
   useComplaintDraft,
 } from '../../state/complaintDraft';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
+import BrandLogo from '../../components/branding/BrandLogo';
 
 function imageKey(image) {
   return image.assetId ? `asset:${image.assetId}` : `uri:${image.sourceUri || image.uri}`;
@@ -212,6 +213,7 @@ export default function ComplaintPhotosScreen() {
         params: {
           id: complaint._id,
           notice: response.data.reviewNotice || '',
+          submitted: 'true',
         },
       });
     } catch (error) {
@@ -245,6 +247,7 @@ export default function ComplaintPhotosScreen() {
           <Text style={styles.headerTitle}>Add Complaint Photos</Text>
           {draft.title ? <Text style={styles.headerMeta} numberOfLines={1}>{draft.title}</Text> : null}
         </View>
+        <BrandLogo size={42} />
       </View>
       <StepProgress step={4} total={4} label="Photos" />
 

@@ -20,6 +20,7 @@ import {
 } from '../../constants/complaintCategories';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
 import { getComplaintDraft, updateComplaintDraft } from '../../state/complaintDraft';
+import BrandLogo from '../../components/branding/BrandLogo';
 
 export default function ReportScreen() {
   const router = useRouter();
@@ -75,6 +76,7 @@ export default function ReportScreen() {
           <Text style={styles.title}>Choose a category</Text>
           <Text style={styles.subtitle}>Select one issue to report</Text>
         </View>
+        <BrandLogo size={42} />
       </View>
       <StepProgress step={1} total={4} label="Category" />
 

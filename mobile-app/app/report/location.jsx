@@ -15,6 +15,7 @@ import { readCurrentLocation } from '../../services/deviceLocation';
 import { reverseGeocode } from '../../services/reverseGeocode';
 import { updateComplaintDraft, useComplaintDraft } from '../../state/complaintDraft';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
+import BrandLogo from '../../components/branding/BrandLogo';
 
 function savedCoordinate(draft) {
   if (!Number.isFinite(draft.latitude) || !Number.isFinite(draft.longitude)) return null;
@@ -134,6 +135,7 @@ export default function ComplaintLocationScreen() {
           <Text style={styles.headerTitle}>Select Complaint Location</Text>
           {draft.title ? <Text style={styles.headerMeta} numberOfLines={1}>{draft.title}</Text> : null}
         </View>
+        <BrandLogo size={42} />
       </View>
       <StepProgress step={3} total={4} label="Location" />
 

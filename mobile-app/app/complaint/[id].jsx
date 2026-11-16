@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import {
   ActivityIndicator,
@@ -15,6 +15,7 @@ import { getCategoryMeta, getStatusMeta, resolveImageUrl } from '../../constants
 import { complaintService } from '../../services/complaintService';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
 import { formatComplaintDate } from '../../utils/dashboardStats';
+import BrandLogo from '../../components/branding/BrandLogo';
 
 function firstParam(value) {
   return Array.isArray(value) ? value[0] : value;
@@ -22,8 +23,10 @@ function firstParam(value) {
 
 export default function ComplaintDetailScreen() {
   const params = useLocalSearchParams();
+  const router = useRouter();
   const id = firstParam(params.id);
   const notice = firstParam(params.notice);
+  const submitted = firstParam(params.submitted) === 'true';
   const insets = useSafeAreaInsets();
   const { isAuthenticated } = useAuth();
   const {
@@ -77,7 +80,24 @@ export default function ComplaintDetailScreen() {
       ]}
       showsVerticalScrollIndicator={false}
     >
-      {notice ? <Text style={styles.notice}>{notice}</Text> : null}
+      <View style={styles.pageHeading}>
+        <BrandLogo size={42} />
+        <Text style={styles.pageHeadingTitle}>Complaint Details</Text>
+      </View>
+      {submitted ? (
+        <View style={styles.successCard}>
+          <Text style={styles.successTitle}>Complaint submitted successfully</Text>
+          <Text style={styles.successMessage}>
+            {notice || 'Your complaint has been recorded and is ready to track.'}
+          </Text>
+          <Pressable
+            style={styles.dashboardButton}
+            onPress={() => router.replace('/(tabs)')}
+          >
+            <Text style={styles.dashboardButtonText}>Return to Dashboard</Text>
+          </Pressable>
+        </View>
+      ) : notice ? <Text style={styles.notice}>{notice}</Text> : null}
       <View style={styles.card}>
         <Text style={styles.category}>{category.label}</Text>
         <Text style={styles.title}>{complaint.title || category.label}</Text>
@@ -144,6 +164,8 @@ export default function ComplaintDetailScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: COLORS.background },
   content: { paddingHorizontal: SPACING.base, gap: SPACING.md },
+  pageHeading: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
+  pageHeadingTitle: { color: COLORS.gray900, fontSize: 20, fontWeight: '800' },
   centered: {
     flex: 1,
     alignItems: 'center',
@@ -153,6 +175,18 @@ const styles = StyleSheet.create({
   },
   errorState: { gap: SPACING.sm },
   card: { padding: SPACING.base, borderRadius: RADIUS.lg, backgroundColor: COLORS.white },
+  successCard: { padding: SPACING.base, borderRadius: RADIUS.lg, backgroundColor: COLORS.white },
+  successTitle: { color: COLORS.gray900, fontSize: 16, fontWeight: '800' },
+  successMessage: { marginTop: SPACING.xs, color: COLORS.gray600, lineHeight: 20 },
+  dashboardButton: {
+    marginTop: SPACING.md,
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: RADIUS.md,
+    backgroundColor: COLORS.primary,
+  },
+  dashboardButtonText: { color: COLORS.white, fontWeight: '700' },
   notice: {
     padding: SPACING.md,
     borderRadius: RADIUS.md,

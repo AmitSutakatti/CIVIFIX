@@ -5,12 +5,11 @@
 // Shows unread notification badge on the Notifications tab.
 
 import { Tabs, Redirect } from 'expo-router';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, Text, StyleSheet, Platform, ActivityIndicator } from 'react-native';
 import { Home, FileText, PlusCircle, Bell, User } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
 import { useNotificationCount } from '../../hooks/useNotificationCount';
-import { COLORS, RADIUS } from '../../constants/theme';
-import { ActivityIndicator } from 'react-native';
+import { COLORS } from '../../constants/theme';
 
 export default function TabLayout() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -117,9 +116,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderTopWidth: 1,
     borderTopColor: COLORS.gray100,
-    height: Platform.OS === 'ios' ? 84 : 64,
-    paddingBottom: Platform.OS === 'ios' ? 24 : 8,
-    paddingTop: 8,
+    height: Platform.OS === 'ios' ? 90 : 82,
+    paddingBottom: Platform.OS === 'ios' ? 26 : 10,
+    paddingTop: 6,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.06,
@@ -130,19 +129,19 @@ const styles = StyleSheet.create({
   tabItem: { paddingTop: 4 },
   reportBtn: {
     backgroundColor: COLORS.primary,
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 4,
+    transform: [{ translateY: -8 }],
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 8,
     elevation: 8,
   },
-  reportLabel: { fontSize: 11, fontWeight: '700', color: COLORS.primary, marginTop: 2 },
+  reportLabel: { fontSize: 11, fontWeight: '700', color: COLORS.primary, marginTop: 5 },
   badge: {
     position: 'absolute',
     top: -4,
