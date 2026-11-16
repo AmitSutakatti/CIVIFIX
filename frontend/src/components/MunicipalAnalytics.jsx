@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { municipalAPI } from '../services/municipal/api';
+import { getComplaintCategoryLabel } from '../utils/complaintCategories';
 import toast from 'react-hot-toast';
 // import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { TrendingUp, Clock, BarChart3 } from 'lucide-react';
@@ -66,19 +67,7 @@ const MunicipalAnalytics = ({ municipalOffice }) => {
     complaints: value,
   }));
 
-  const getCategoryLabel = (category) => {
-    const categories = {
-      road: 'Road Issues',
-      drainage: 'Drainage',
-      electricity: 'Electricity',
-      garbage: 'Garbage',
-      water: 'Water',
-      streetlight: 'Street Light',
-      parks: 'Parks',
-      other: 'Other',
-    };
-    return categories[category] || category;
-  };
+  const getCategoryLabel = getComplaintCategoryLabel;
 
   return (
     <div className="space-y-6">

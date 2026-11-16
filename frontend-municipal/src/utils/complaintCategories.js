@@ -1,0 +1,48 @@
+export const COMPLAINT_CATEGORY_LABELS = {
+  road: 'Road Issues',
+  drainage: 'Drainage Problems',
+  electricity: 'Electricity Issues',
+  garbage: 'Garbage Collection',
+  water: 'Water Supply',
+  streetlight: 'Street Light',
+  parks: 'Parks & Recreation',
+  other: 'Other',
+  'missed-garbage-collection': 'Missed Garbage Collection',
+  'overflowing-public-dustbins': 'Overflowing Public Dustbins',
+  'illegal-garbage-dumping': 'Illegal Garbage Dumping',
+  'dead-animal-removal': 'Dead Animal Removal',
+  'public-toilet-maintenance': 'Public Toilet Maintenance',
+  'choked-roadside-drains': 'Choked Roadside Drains',
+  'minor-water-pipeline-leak': 'Minor Water Pipeline Leak',
+  'missing-manhole-cover': 'Missing Manhole Cover',
+  'low-pressure-contaminated-water': 'Low-Pressure / Contaminated Water',
+  'non-functional-streetlight': 'Non-Functional Streetlight',
+  'loose-streetlight-wires': 'Loose Streetlight Wires',
+  'fallen-tree-branches': 'Fallen Tree Branches',
+  'mosquito-fogging-spraying': 'Mosquito Fogging & Spraying',
+  'stray-cattle-dog-menace': 'Stray Cattle / Dog Menace',
+  'minor-pothole-patching': 'Minor Pothole Patching',
+  'dug-up-roads-unpaved': 'Dug-up Roads Left Unpaved',
+  'sunken-raised-manholes': 'Sunken or Raised Manholes',
+  'crumbling-road-edges': 'Crumbling Road Edges & Shoulders',
+  'broken-speed-breakers': 'Unmarked or Broken Speed Breakers',
+  'faded-road-markings': 'Faded Road Markings & Missing Signage',
+  'broken-footpath-slabs': 'Broken or Missing Footpath Slabs',
+  'uprooted-paver-blocks': 'Uprooted Interlocking Paver Blocks',
+  'missing-guardrails-medians': 'Missing Roadside Guardrails / Medians',
+  'chronic-street-waterlogging': 'Chronic Street Waterlogging',
+  'collapsed-drain-walls': 'Collapsed Roadside Drain Walls',
+  'overflowing-main-sewer': 'Overflowing Main Sewer Lines (UGD)',
+  'dark-stretches': 'Entire Dark Stretches (Dead Cable Lines)',
+  'leaning-rusted-poles': 'Leaning or Rusted Electric/Light Poles',
+  'broken-park-infrastructure': 'Broken Park Infrastructure',
+  'dumped-construction-debris': 'Dumped Construction Debris (Malba)',
+};
+
+export const COMPLAINT_CATEGORY_OPTIONS = Object.entries(COMPLAINT_CATEGORY_LABELS).map(
+  ([value, label]) => ({ value, label })
+);
+
+export function getComplaintCategoryLabel(category) {
+  return COMPLAINT_CATEGORY_LABELS[category] || category || 'Other';
+}

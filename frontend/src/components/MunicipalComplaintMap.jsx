@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { getComplaintCategoryLabel } from '../utils/complaintCategories';
 
 // Fix for default marker icons in React-Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -119,7 +120,7 @@ const MunicipalComplaintMap = ({ complaints, municipalOffice, onComplaintClick }
                   Complaint #{complaint._id.toString().slice(-6)}
                 </div>
                 <div className="text-sm text-gray-600 mt-1">
-                  {complaint.category} • {complaint.status}
+                  {getComplaintCategoryLabel(complaint.category)} • {complaint.status}
                 </div>
                 {complaint.distance && (
                   <div className="text-xs text-gray-500 mt-1">

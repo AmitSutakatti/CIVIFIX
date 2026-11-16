@@ -124,6 +124,12 @@ const ComplaintReviewModal = ({
           </div>
 
           <div>
+            {complaint.title && (
+              <div className="mb-4">
+                <label className="text-sm font-medium text-gray-500">Title</label>
+                <p className="text-gray-900 mt-1">{complaint.title}</p>
+              </div>
+            )}
             <label className="text-sm font-medium text-gray-500">Description</label>
             <p className="text-gray-900 mt-1">{complaint.description}</p>
           </div>

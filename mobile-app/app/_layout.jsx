@@ -22,8 +22,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider } from '../context/AuthContext';
 import { toastConfig } from '../components/ui/ToastConfig';
 
-// Keep the splash screen visible until we're ready
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 // Create a single QueryClient for the whole app.
 // staleTime: 2 min — data stays fresh without refetching on every focus.
@@ -71,6 +70,10 @@ function RootNavigator() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
 
       {/* Complaint detail — modal-style slide up */}
+      <Stack.Screen name="report/details" options={{ headerShown: false }} />
+      <Stack.Screen name="report/location" options={{ headerShown: false }} />
+      <Stack.Screen name="report/photos" options={{ headerShown: false }} />
+
       <Stack.Screen
         name="complaint/[id]"
         options={{

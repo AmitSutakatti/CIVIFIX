@@ -1,4 +1,5 @@
 import Complaint from '../models/Complaint.js';
+import { getComplaintCategoryLabel } from '../constants/complaintCategories.js';
 
 export const REVIEW_CONFIG = {
   duplicateRadiusMeters: 50,
@@ -110,7 +111,7 @@ export async function computeReviewSignals({
         const closest = nearbySummaries[0];
         flags.push({
           type: 'possible_duplicate',
-          message: `Similar ${category} complaint found ${closest.distanceMeters}m away and is still unresolved.`,
+          message: `Similar ${getComplaintCategoryLabel(category)} complaint found ${closest.distanceMeters}m away and is still unresolved.`,
           relatedComplaint: closest._id,
           distanceMeters: closest.distanceMeters,
         });

@@ -6,19 +6,65 @@ import {
   persistReviewFlagsOnNearby,
 } from '../../utils/complaintReview.js';
 import { saveUploads } from '../../utils/imageStorage.js';
+import {
+  COMPLAINT_CATEGORY_VALUES,
+  getComplaintCategoryLabel,
+} from '../../constants/complaintCategories.js';
 
 // @desc    Create new complaint
 // @route   POST /api/complaints
 // @access  Private
 export const createComplaint = async (req, res) => {
   try {
-    const { category, description, latitude, longitude, address } = req.body;
+    const {
+      category,
+      title,
+      description,
+      additionalInfo,
+      latitude,
+      longitude,
+      address,
+    } = req.body || {};
+    const hasCoordinate = (value) =>
+      value !== undefined && value !== null && String(value).trim() !== '';
+    const hasLatitude = hasCoordinate(latitude);
+    const hasLongitude = hasCoordinate(longitude);
+    const parsedLatitude = Number(latitude);
+    const parsedLongitude = Number(longitude);
+    const normalizedTitle = typeof title === 'string' ? title.trim() : '';
+    const normalizedDescription =
+      typeof description === 'string' ? description.trim() : '';
+    const normalizedAdditionalInfo =
+      typeof additionalInfo === 'string' ? additionalInfo.trim() : '';
 
-    // Validation
-    if (!category || !description || !latitude || !longitude) {
+    if (!COMPLAINT_CATEGORY_VALUES.includes(category)) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide category, description, and location',
+        message: 'Please select a supported complaint category',
+      });
+    }
+
+    if (
+      !normalizedDescription ||
+      !hasLatitude ||
+      !hasLongitude ||
+      !Number.isFinite(parsedLatitude) ||
+      !Number.isFinite(parsedLongitude) ||
+      parsedLatitude < -90 ||
+      parsedLatitude > 90 ||
+      parsedLongitude < -180 ||
+      parsedLongitude > 180
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a description and valid latitude and longitude',
+      });
+    }
+
+    if (normalizedTitle.length > 100 || normalizedAdditionalInfo.length > 300) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title must be 100 characters or fewer and additional information 300 characters or fewer',
       });
     }
 
@@ -40,11 +86,13 @@ export const createComplaint = async (req, res) => {
     const complaint = await Complaint.create({
       user: req.user.id,
       category,
-      description,
+      title: normalizedTitle || undefined,
+      description: normalizedDescription,
+      additionalInfo: normalizedAdditionalInfo || undefined,
       images,
       location: {
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude),
+        latitude: parsedLatitude,
+        longitude: parsedLongitude,
         address: address || '',
       },
       status: 'Submitted',
@@ -62,7 +110,7 @@ export const createComplaint = async (req, res) => {
       user: req.user.id,
       complaint: complaint._id,
       title: 'Complaint Submitted',
-      message: `Your ${category} complaint has been submitted successfully.`,
+      message: `Your ${getComplaintCategoryLabel(category)} complaint has been submitted successfully.`,
       type: 'status_update',
     });
 

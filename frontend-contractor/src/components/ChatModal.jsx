@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { contractorAPI } from '../services/api';
+import { getComplaintCategoryLabel } from '../utils/complaintCategories';
 import toast from 'react-hot-toast';
 import { X, Send, Paperclip, Image as ImageIcon } from 'lucide-react';
 
@@ -123,7 +124,7 @@ const ChatModal = ({ complaint, onClose }) => {
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
             <h3 className="text-xl font-bold text-gray-900">Chat - Project #{complaint._id.toString().slice(-6)}</h3>
-            <p className="text-sm text-gray-500 mt-1">{complaint.category}</p>
+            <p className="text-sm text-gray-500 mt-1">{getComplaintCategoryLabel(complaint.category)}</p>
           </div>
           <button
             onClick={onClose}

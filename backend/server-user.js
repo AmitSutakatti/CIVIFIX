@@ -21,8 +21,8 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: process.env.USER_FRONTEND_URL || 'http://localhost:3000',
-  credentials: true
+  origin: true,
+  credentials: true,
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -42,7 +42,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Connect to MongoDB
-const PORT = process.env.USER_PORT || 5000;
+const PORT = process.env.PORT || process.env.USER_PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/civicfix';
 
 mongoose
@@ -54,7 +54,7 @@ mongoose
     console.log('✅ Connected to MongoDB');
     
     // Create server with error handling
-    const server = app.listen(PORT, () => {
+    const server = app.listen(PORT,'0.0.0.0', () => {
       console.log(`🚀 User Portal Backend running on port ${PORT}`);
       console.log(`📡 API available at http://localhost:${PORT}/api`);
     });

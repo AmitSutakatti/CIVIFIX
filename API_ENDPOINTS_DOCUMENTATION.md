@@ -38,13 +38,17 @@
 **Details:**
 - **POST `/api/complaints`**: 
   - Accepts FormData with:
-    - `category` (string): Complaint category (road, drainage, electricity, etc.)
+    - `category` (string): One of the legacy values `road`, `drainage`, `electricity`, `garbage`, `water`, `streetlight`, `parks`, `other`, or a mobile-specific value: `missed-garbage-collection`, `overflowing-public-dustbins`, `illegal-garbage-dumping`, `dead-animal-removal`, `public-toilet-maintenance`, `choked-roadside-drains`, `minor-water-pipeline-leak`, `missing-manhole-cover`, `low-pressure-contaminated-water`, `non-functional-streetlight`, `loose-streetlight-wires`, `fallen-tree-branches`, `mosquito-fogging-spraying`, `stray-cattle-dog-menace`, `minor-pothole-patching`, `dug-up-roads-unpaved`, `sunken-raised-manholes`, `crumbling-road-edges`, `broken-speed-breakers`, `faded-road-markings`, `broken-footpath-slabs`, `uprooted-paver-blocks`, `missing-guardrails-medians`, `chronic-street-waterlogging`, `collapsed-drain-walls`, `overflowing-main-sewer`, `dark-stretches`, `leaning-rusted-poles`, `broken-park-infrastructure`, or `dumped-construction-debris`
+    - `title` (string, optional; max 100 characters): Short complaint summary
     - `description` (string): Detailed description of the issue
+    - `additionalInfo` (string, optional; max 300 characters)
     - `latitude` (number): Location latitude
     - `longitude` (number): Location longitude
     - `address` (string, optional): Human-readable address
     - `images` (files, max 5): Image files of the issue
-  - Returns: Created complaint object with status "Submitted"
+  - Each image must be JPEG/JPG, PNG, GIF, or WEBP and no larger than 5 MiB.
+  - Returns: Created complaint object with status "Submitted", review metadata, and the complaint ID.
+  - Images are uploaded to ImageKit when configured; if ImageKit is unavailable, the backend falls back to local `/uploads` storage.
   
 - **GET `/api/complaints/my`**: 
   - Returns all complaints submitted by the authenticated user
@@ -299,7 +303,7 @@
 
 1. **User submits complaint** → `POST /api/complaints`
    - Complaint is created with status "Submitted"
-   - Images are saved to `/uploads` folder
+   - Images are uploaded to ImageKit when configured, otherwise saved under `/uploads`
    - Notification is created for user
 
 2. **User views their complaints** → `GET /api/complaints/my`
@@ -402,12 +406,16 @@ Content-Type: multipart/form-data
 Authorization: Bearer <token>
 
 FormData:
-- category: "road"
-- description: "Large pothole on Main Street"
+- category: "missed-garbage-collection"
+- title: "Missed pickup near the bus stop"
+- description: "Garbage collection was missed for two days near the bus stop."
+- additionalInfo: "Across from the library"
 - latitude: 15.85
 - longitude: 74.5
 - address: "Main Street, Belagavi"
 - images: [file1.jpg, file2.jpg]
+
+`title` and `additionalInfo` are optional for backwards compatibility with the Citizen web form.
 ```
 
 **Response:**

@@ -98,7 +98,7 @@ api.interceptors.response.use(
     }
 
     if (IS_DEV) {
-      console.error('[API] Error:', status, error.response?.data || error.message);
+      console.warn('[API] Error:', status ?? 'NO_RESPONSE', error.response?.data || error.message);
     }
 
     return Promise.reject(error);
@@ -128,20 +128,44 @@ export function onTokenExpired(callback) {
 //     latitude, longitude, address, images });
 //   await complaintService.create(formData);
 //
-export function buildComplaintFormData({ category, description, latitude, longitude, address, images = [] }) {
+export function buildComplaintFormData({
+  category,
+  title,
+  description,
+  additionalInfo,
+  latitude,
+  longitude,
+  address,
+  images = [],
+}) {
+  if (!category || !description || !Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    throw new Error('A complaint category, description, and valid location are required.');
+  }
+  if (images.length > 5) {
+    throw new Error('A complaint can include up to 5 photos.');
+  }
+
   const formData = new FormData();
   formData.append('category', category);
+  if (title?.trim()) formData.append('title', title.trim());
   formData.append('description', description);
+  if (additionalInfo?.trim()) formData.append('additionalInfo', additionalInfo.trim());
   formData.append('latitude', String(latitude));
   formData.append('longitude', String(longitude));
-  if (address) formData.append('address', address);
+  if (address?.trim()) formData.append('address', address.trim());
 
-  images.forEach((image) => {
+  images.forEach((image, index) => {
+    if (!image?.uri) {
+      throw new Error('A selected photo is no longer accessible. Remove it and select it again.');
+    }
+    if (Number.isFinite(image.fileSize) && image.fileSize > 5 * 1024 * 1024) {
+      throw new Error('Each complaint photo must be 5 MB or smaller.');
+    }
     // image is an Expo ImagePicker asset: { uri, mimeType, fileName }
     formData.append('images', {
       uri: image.uri,
       type: image.mimeType || 'image/jpeg',
-      name: image.fileName || `photo_${Date.now()}.jpg`,
+      name: image.fileName || `photo_${index + 1}_${Date.now()}.jpg`,
     });
   });
 

@@ -9,6 +9,7 @@ import {
   sendContractorAssignmentEmail,
   sendContractorPortalReadyEmail,
 } from '../../services/emailService.js';
+import { getComplaintCategoryLabel } from '../../constants/complaintCategories.js';
 import { getCategoryPriority, getResolutionTime } from '../../utils/categoryPriority.js';
 import { saveUpload } from '../../utils/imageStorage.js';
 import {
@@ -445,7 +446,7 @@ export const verifyComplaint = async (req, res) => {
         user: complaint.user._id,
         complaint: complaint._id,
         title: 'Complaint Verified',
-        message: `Your ${complaint.category} complaint has been verified and is being processed.`,
+        message: `Your ${getComplaintCategoryLabel(complaint.category)} complaint has been verified and is being processed.`,
         type: 'status_update',
       });
 
@@ -470,7 +471,7 @@ export const verifyComplaint = async (req, res) => {
       if (userEmail) {
         const municipalOffice = officer.municipalOffice;
         const complaintId = complaint._id.toString().slice(-6);
-        const category = complaint.category.charAt(0).toUpperCase() + complaint.category.slice(1);
+        const category = getComplaintCategoryLabel(complaint.category);
         const priority = complaint.priority || getCategoryPriority(complaint.category);
         const resolutionTime = getResolutionTime(priority);
         
@@ -630,7 +631,7 @@ export const assignContractor = async (req, res) => {
       user: complaint.user._id,
       complaint: complaint._id,
       title: 'Contractor Assigned',
-      message: `A contractor has been assigned to your ${complaint.category} complaint.`,
+      message: `A contractor has been assigned to your ${getComplaintCategoryLabel(complaint.category)} complaint.`,
       type: 'status_update',
     });
 
@@ -639,14 +640,13 @@ export const assignContractor = async (req, res) => {
       user: contractorId,
       complaint: complaint._id,
       title: 'New Project Assigned',
-      message: `You have been assigned to a ${complaint.category} complaint.`,
+      message: `You have been assigned to a ${getComplaintCategoryLabel(complaint.category)} complaint.`,
       type: 'assignment',
     });
 
     if (contractor.email) {
       try {
-        const category =
-          complaint.category.charAt(0).toUpperCase() + complaint.category.slice(1);
+        const category = getComplaintCategoryLabel(complaint.category);
         await sendContractorAssignmentEmail(contractor.email, {
           contractorName: contractor.name || 'Contractor',
           category,
@@ -831,7 +831,7 @@ export const closeComplaint = async (req, res) => {
       user: complaint.user._id,
       complaint: complaint._id,
       title: 'Complaint Closed',
-      message: `Your ${complaint.category} complaint has been closed. Thank you for your report!`,
+      message: `Your ${getComplaintCategoryLabel(complaint.category)} complaint has been closed. Thank you for your report!`,
       type: 'status_update',
     });
 
@@ -1582,9 +1582,7 @@ export const markComplaintFake = async (req, res) => {
 
     if (reporter.email) {
       try {
-        const category = complaint.category
-          ? complaint.category.charAt(0).toUpperCase() + complaint.category.slice(1)
-          : 'complaint';
+        const category = getComplaintCategoryLabel(complaint.category);
         await sendFakeComplaintEmail(reporter.email, {
           userName: reporter.name || 'Citizen',
           category,

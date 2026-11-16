@@ -4,6 +4,7 @@ import UserNavbar from '../components/UserNavbar';
 import RegistrationBonusModal from '../components/RegistrationBonusModal';
 import { complaintAPI } from '../services/user/api';
 import { useAuth } from '../context/AuthContext';
+import { getComplaintCategoryLabel } from '../utils/complaintCategories';
 import toast from 'react-hot-toast';
 import { PlusCircle, Eye, AlertCircle, CheckCircle, Clock, XCircle, Camera, Award } from 'lucide-react';
 
@@ -71,20 +72,6 @@ const UserDashboard = () => {
     const statuses = ['Submitted', 'Verified', 'Assigned', 'In-progress', 'Completed', 'Closed'];
     const currentIndex = statuses.indexOf(status);
     return ((currentIndex + 1) / statuses.length) * 100;
-  };
-
-  const getCategoryLabel = (category) => {
-    const categories = {
-      road: 'Road Issues',
-      drainage: 'Drainage Problems',
-      electricity: 'Electricity Issues',
-      garbage: 'Garbage Collection',
-      water: 'Water Supply',
-      streetlight: 'Street Light',
-      parks: 'Parks & Recreation',
-      other: 'Other',
-    };
-    return categories[category] || category;
   };
 
   const stats = {
@@ -218,12 +205,12 @@ const UserDashboard = () => {
                           <span>{complaint.status}</span>
                         </span>
                         <span className="text-sm text-gray-500">
-                          {getCategoryLabel(complaint.category)}
+                          {getComplaintCategoryLabel(complaint.category)}
                         </span>
                       </div>
 
                       <p className="text-gray-800 mb-3 line-clamp-2">
-                        {complaint.description}
+                        {complaint.title || complaint.description}
                       </p>
 
                       {/* Progress Bar */}

@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { COMPLAINT_CATEGORY_VALUES } from '../constants/complaintCategories.js';
 
 const complaintSchema = new mongoose.Schema(
   {
@@ -10,21 +11,22 @@ const complaintSchema = new mongoose.Schema(
     category: {
       type: String,
       required: [true, 'Category is required'],
-      enum: [
-        'road',
-        'drainage',
-        'electricity',
-        'garbage',
-        'water',
-        'streetlight',
-        'parks',
-        'other',
-      ],
+      enum: COMPLAINT_CATEGORY_VALUES,
+    },
+    title: {
+      type: String,
+      trim: true,
+      maxlength: 100,
     },
     description: {
       type: String,
       required: [true, 'Description is required'],
       trim: true,
+    },
+    additionalInfo: {
+      type: String,
+      trim: true,
+      maxlength: 300,
     },
     images: [
       {
@@ -192,7 +194,10 @@ complaintSchema.index({ geoLocation: '2dsphere' });
 // Ensure geoLocation is set from latitude/longitude before save
 complaintSchema.pre('save', function (next) {
   // Set GeoJSON coordinates from latitude/longitude
-  if (this.location && this.location.latitude && this.location.longitude) {
+  if (
+    Number.isFinite(this.location?.latitude) &&
+    Number.isFinite(this.location?.longitude)
+  ) {
     this.geoLocation = {
       type: 'Point',
       coordinates: [this.location.longitude, this.location.latitude], // GeoJSON: [lng, lat]

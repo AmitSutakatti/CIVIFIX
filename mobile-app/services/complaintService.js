@@ -7,11 +7,27 @@ import api, { buildComplaintFormData } from './api';
 
 export const complaintService = {
   // POST /api/complaints  (multipart/form-data)
-  create: async ({ category, description, latitude, longitude, address, images }) => {
-    const formData = buildComplaintFormData({ category, description, latitude, longitude, address, images });
-    const res = await api.post('/complaints', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+  create: async ({
+    category,
+    title,
+    description,
+    additionalInfo,
+    latitude,
+    longitude,
+    address,
+    images,
+  }) => {
+    const formData = buildComplaintFormData({
+      category,
+      title,
+      description,
+      additionalInfo,
+      latitude,
+      longitude,
+      address,
+      images,
     });
+    const res = await api.post('/complaints', formData);
     return res.data; // { success, message, data: { complaint, requiresReview, reviewFlags, reviewNotice } }
   },
 

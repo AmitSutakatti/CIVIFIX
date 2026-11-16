@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { chatAPI } from '../services/api';
+import { getComplaintCategoryLabel } from '../utils/complaintCategories';
 import toast from 'react-hot-toast';
 import { X, Send, Paperclip, Image as ImageIcon } from 'lucide-react';
 
@@ -124,7 +125,7 @@ const ChatModal = ({ complaint, onClose }) => {
           <div>
             <h3 className="text-xl font-bold text-gray-900">Chat - Project #{complaint._id.toString().slice(-6)}</h3>
             <p className="text-sm text-gray-500 mt-1">
-              {complaint.category} • {complaint.assignedContractor?.name || 'Contractor'}
+              {getComplaintCategoryLabel(complaint.category)} • {complaint.assignedContractor?.name || 'Contractor'}
             </p>
           </div>
           <button

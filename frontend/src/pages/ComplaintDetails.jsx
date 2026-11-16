@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import UserNavbar from '../components/UserNavbar';
 import { complaintAPI } from '../services/user/api';
+import { getComplaintCategoryLabel } from '../utils/complaintCategories';
 import toast from 'react-hot-toast';
 import {
   ArrowLeft,
@@ -50,20 +51,6 @@ const ComplaintDetails = () => {
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
-  const getCategoryLabel = (category) => {
-    const categories = {
-      road: 'Road Issues',
-      drainage: 'Drainage Problems',
-      electricity: 'Electricity Issues',
-      garbage: 'Garbage Collection',
-      water: 'Water Supply',
-      streetlight: 'Street Light',
-      parks: 'Parks & Recreation',
-      other: 'Other',
-    };
-    return categories[category] || category;
-  };
-
   const getImageUrl = (image) => {
     if (image.url.startsWith('http')) {
       return image.url;
@@ -107,8 +94,13 @@ const ComplaintDetails = () => {
               <div className="flex justify-between items-start mb-6">
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                    {getCategoryLabel(complaint.category)}
+                    {complaint.title || getComplaintCategoryLabel(complaint.category)}
                   </h1>
+                  {complaint.title ? (
+                    <p className="text-sm text-gray-500 mb-2">
+                      {getComplaintCategoryLabel(complaint.category)}
+                    </p>
+                  ) : null}
                   <span
                     className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
                       complaint.status

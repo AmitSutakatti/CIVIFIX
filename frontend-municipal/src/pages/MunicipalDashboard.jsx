@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { municipalAPI, quotationAPI } from '../services/api';
+import {
+  COMPLAINT_CATEGORY_OPTIONS,
+  getComplaintCategoryLabel,
+} from '../utils/complaintCategories';
 import toast from 'react-hot-toast';
 import {
   AlertCircle,
@@ -189,19 +193,7 @@ const MunicipalDashboard = () => {
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
-  const getCategoryLabel = (category) => {
-    const categories = {
-      road: 'Road Issues',
-      drainage: 'Drainage Problems',
-      electricity: 'Electricity Issues',
-      garbage: 'Garbage Collection',
-      water: 'Water Supply',
-      streetlight: 'Street Light',
-      parks: 'Parks & Recreation',
-      other: 'Other',
-    };
-    return categories[category] || category;
-  };
+  const getCategoryLabel = getComplaintCategoryLabel;
 
   const handleLogout = () => {
     logout();
@@ -589,14 +581,9 @@ const ComplaintsPanel = ({
               className="input-field text-sm"
             >
               <option value="all">All Categories</option>
-              <option value="road">Road Issues</option>
-              <option value="drainage">Drainage</option>
-              <option value="electricity">Electricity</option>
-              <option value="garbage">Garbage</option>
-              <option value="water">Water</option>
-              <option value="streetlight">Street Light</option>
-              <option value="parks">Parks</option>
-              <option value="other">Other</option>
+              {COMPLAINT_CATEGORY_OPTIONS.map(({ value, label }) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
             </select>
           </div>
         </div>
@@ -966,6 +953,9 @@ const ComplaintDetailsModal = ({
           </div>
 
           <div>
+            {complaint.title && (
+              <p className="text-gray-900 font-medium mb-1">{complaint.title}</p>
+            )}
             <label className="text-sm font-medium text-gray-500">Description</label>
             <p className="text-gray-900 mt-1">{complaint.description}</p>
           </div>

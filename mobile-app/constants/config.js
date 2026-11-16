@@ -1,3 +1,5 @@
+import { COMPLAINT_CATEGORY_OPTIONS } from './complaintCategories';
+
 // constants/config.js
 //
 // SINGLE SOURCE OF TRUTH for all app-wide configuration.
@@ -28,13 +30,16 @@
 // ── Core API URL ──────────────────────────────────────────
 // Set in .env   →   EXPO_PUBLIC_API_URL=http://192.168.x.x:5000/api
 // Set in .env.production  →  EXPO_PUBLIC_API_URL=https://api.yourcivicfix.com/api
-export const API_URL = process.env.EXPO_PUBLIC_API_URL;
+const FALLBACK_API_URL = 'https://userbackend-civifix.onrender.com/api';
+const FALLBACK_UPLOADS_URL = 'https://userbackend-civifix.onrender.com';
+
+export const API_URL = process.env.EXPO_PUBLIC_API_URL || FALLBACK_API_URL;
 
 // ── Uploads base URL ──────────────────────────────────────
 // Used ONLY for relative image paths (/uploads/filename.jpg).
 // Full CDN URLs (https://ik.imagekit.io/...) do not use this.
 // Set in .env  →  EXPO_PUBLIC_UPLOADS_BASE_URL=http://192.168.x.x:5000
-export const UPLOADS_BASE_URL = process.env.EXPO_PUBLIC_UPLOADS_BASE_URL;
+export const UPLOADS_BASE_URL = process.env.EXPO_PUBLIC_UPLOADS_BASE_URL || FALLBACK_UPLOADS_URL;
 
 // ── App environment ───────────────────────────────────────
 // 'development' | 'production'
@@ -42,21 +47,15 @@ export const APP_ENV = process.env.EXPO_PUBLIC_ENV || 'development';
 
 // ── Request timeout (ms) ─────────────────────────────────
 // Default: 15 000 ms (15 s). Increase on slow/mobile networks.
-export const API_TIMEOUT = Number(process.env.EXPO_PUBLIC_API_TIMEOUT) || 15000;
+export const API_TIMEOUT = Number(process.env.EXPO_PUBLIC_API_TIMEOUT) || 45000;
 
 // ── Derived flags ─────────────────────────────────────────
 export const IS_DEV = APP_ENV === 'development';
 export const IS_PROD = APP_ENV === 'production';
 
-// ── Guard — fail fast if API_URL is missing ───────────────
-// This surfaces a clear error during development rather than
-// a cryptic network failure deep inside a component.
-if (!API_URL) {
-  throw new Error(
-    '[CivicFix Config] EXPO_PUBLIC_API_URL is not set.\n' +
-    'Open mobile-app/.env and set:\n' +
-    '  EXPO_PUBLIC_API_URL=http://192.168.x.x:5000/api\n' +
-    'Then restart the Metro bundler: npx expo start --clear'
+if (!process.env.EXPO_PUBLIC_API_URL && __DEV__) {
+  console.warn(
+    '[CivicFix Config] EXPO_PUBLIC_API_URL is not set. Using the hosted backend. Copy mobile-app/.env.example to .env for local development.'
   );
 }
 
@@ -93,6 +92,12 @@ export const COMPLAINT_CATEGORIES = [
   { value: 'streetlight', label: 'Street Light',        icon: '💡',  priority: 'medium' },
   { value: 'parks',       label: 'Parks & Recreation',  icon: '🌳',  priority: 'low'    },
   { value: 'other',       label: 'Other',               icon: '📋',  priority: 'low'    },
+  ...COMPLAINT_CATEGORY_OPTIONS.map((category) => ({
+    value: category.id,
+    label: category.name,
+    icon: '📋',
+    priority: 'medium',
+  })),
 ];
 
 // ── Complaint statuses ────────────────────────────────────
@@ -122,7 +127,7 @@ export function getCategoryMeta(categoryValue) {
   return (
     COMPLAINT_CATEGORIES.find((c) => c.value === categoryValue) || {
       value: categoryValue,
-      label: categoryValue,
+      label: categoryValue?.replaceAll('-', ' ') || 'Other',
       icon: '📋',
       priority: 'medium',
     }
@@ -149,3 +154,4 @@ export const DEFAULT_PAGE_SIZE = 20;
 // How often the app checks for new notifications.
 // 30 seconds in development, 60 seconds in production.
 export const NOTIFICATION_POLL_INTERVAL = IS_DEV ? 30_000 : 60_000;
+

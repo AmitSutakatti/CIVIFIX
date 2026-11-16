@@ -21,7 +21,10 @@ export const authService = {
       };
     } catch (error) {
       const data = error.response?.data || {};
-      return { success: false, message: data.message || 'Registration failed' };
+      return {
+        success: false,
+        message: data.message || error.userMessage || 'Registration failed. Check your connection and try again.',
+      };
     }
   },
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { contractorAPI } from '../services/api';
+import { getComplaintCategoryLabel } from '../utils/complaintCategories';
 import toast from 'react-hot-toast';
 import {
   Wrench,
@@ -116,19 +117,7 @@ const ContractorDashboard = () => {
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
-  const getCategoryLabel = (category) => {
-    const categories = {
-      road: 'Road Issues',
-      drainage: 'Drainage Problems',
-      electricity: 'Electricity Issues',
-      garbage: 'Garbage Collection',
-      water: 'Water Supply',
-      streetlight: 'Street Light',
-      parks: 'Parks & Recreation',
-      other: 'Other',
-    };
-    return categories[category] || category;
-  };
+  const getCategoryLabel = getComplaintCategoryLabel;
 
   if (loading && complaints.length === 0) {
     return (
@@ -210,7 +199,7 @@ const ContractorDashboard = () => {
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
                         <h3 className="text-lg font-semibold text-gray-900">
-                          {getCategoryLabel(complaint.category)}
+                          {complaint.title || getCategoryLabel(complaint.category)}
                         </h3>
                         <span
                           className={`px-2 py-1 text-xs font-medium rounded-full border ${getStatusColor(
@@ -220,6 +209,11 @@ const ContractorDashboard = () => {
                           {complaint.status}
                         </span>
                       </div>
+                      {complaint.title && (
+                        <p className="text-sm text-gray-500 mb-1">
+                          {getCategoryLabel(complaint.category)}
+                        </p>
+                      )}
                       <p className="text-gray-600 mb-3">{complaint.description}</p>
                       <div className="flex items-center space-x-4 text-sm text-gray-500">
                         <div className="flex items-center space-x-1">
