@@ -41,6 +41,10 @@ const api = axios.create({
 // SecureStore.getItemAsync is async, so we must await it.
 api.interceptors.request.use(
   async (config) => {
+    if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+      config.headers.delete('Content-Type'); // Let the platform add the multipart boundary.
+    }
+
     try {
       const token = await getToken();
       if (token) {
