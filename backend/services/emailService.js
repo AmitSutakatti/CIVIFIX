@@ -3,18 +3,12 @@ import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import https from 'https';
 import { buildComplaintSubmissionEmail } from '../templates/complaintSubmissionEmail.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.join(__dirname, '../.env') });
-
-const EMAILJS_SERVICE_ID = process.env.EMAILJS_SERVICE_ID?.trim();
-const EMAILJS_TEMPLATE_ID = process.env.EMAILJS_TEMPLATE_ID?.trim();
-const EMAILJS_PUBLIC_KEY = process.env.EMAILJS_PUBLIC_KEY?.trim();
-const EMAILJS_PRIVATE_KEY = process.env.EMAILJS_PRIVATE_KEY?.trim();
 
 const SMTP_HOST = process.env.SMTP_HOST?.trim() || 'smtp.gmail.com';
 const SMTP_PORT = Number(process.env.SMTP_PORT || 587);
@@ -34,15 +28,6 @@ const TEAM_LOGO_HTML = TEAM_LOGO_PATH
   : `<div style="font-size:24px;font-weight:bold;">CIVICFIX</div>`;
 
 const isSmtpConfigured = Boolean(SMTP_USER && SMTP_PASS);
-const isEmailJsConfigured = Boolean(
-  EMAILJS_SERVICE_ID &&
-    EMAILJS_TEMPLATE_ID &&
-    EMAILJS_PUBLIC_KEY &&
-    EMAILJS_PRIVATE_KEY &&
-    !EMAILJS_SERVICE_ID.includes('YOUR_') &&
-    !EMAILJS_PUBLIC_KEY.includes('YOUR_') &&
-    !EMAILJS_PRIVATE_KEY.includes('YOUR_')
-);
 
 const htmlToText = (html) =>
   String(html || '')
@@ -68,6 +53,9 @@ const createTransporter = (relaxTls = false) =>
     host: SMTP_HOST,
     port: SMTP_PORT,
     secure: SMTP_SECURE,
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 30_000,
     auth: {
       user: SMTP_USER,
       pass: SMTP_PASS,
@@ -121,94 +109,10 @@ const sendViaNodemailer = async (to, subject, htmlBody) => {
   }
 };
 
-const sendViaEmailJs = async (to, subject, htmlBody, templateParams = {}) => {
-  console.log('[Email] Sending via EmailJS REST API...');
-
-  const params = {
-    to_email: to,
-    subject,
-    message: htmlBody,
-    html_message: htmlBody,
-    ...templateParams,
-  };
-
-  const requestBody = {
-    service_id: EMAILJS_SERVICE_ID,
-    template_id: EMAILJS_TEMPLATE_ID,
-    user_id: EMAILJS_PUBLIC_KEY,
-    template_params: params,
-  };
-
-  if (EMAILJS_PRIVATE_KEY) {
-    requestBody.accessToken = EMAILJS_PRIVATE_KEY;
-  }
-
-  const requestData = JSON.stringify(requestBody);
-  const apiPath = '/api/v1.0/email/send';
-
-  const response = await new Promise((resolve, reject) => {
-    const options = {
-      hostname: 'api.emailjs.com',
-      port: 443,
-      path: apiPath,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(requestData),
-      },
-    };
-
-    const req = https.request(options, (res) => {
-      let data = '';
-      res.on('data', (chunk) => {
-        data += chunk;
-      });
-      res.on('end', () => {
-        resolve({
-          ok: res.statusCode >= 200 && res.statusCode < 300,
-          status: res.statusCode,
-          headers: res.headers,
-          text: () => Promise.resolve(data),
-        });
-      });
-    });
-
-    req.on('error', reject);
-    req.write(requestData);
-    req.end();
-  });
-
-  const responseText = await response.text();
-  console.log(`[Email] EmailJS status: ${response.status}`);
-
-  if (!response.ok) {
-    if (responseText.includes('disabled') || responseText.includes('non-browser')) {
-      throw new Error(
-        'EmailJS server-side API calls are disabled. Enable API access in EmailJS: Account → Security → Allow EmailJS API for non-browser applications.'
-      );
-    }
-    throw new Error(responseText || `EmailJS API error: ${response.status}`);
-  }
-
-  let result;
-  try {
-    result = JSON.parse(responseText);
-  } catch {
-    result = { text: responseText, status: 'sent' };
-  }
-
-  return {
-    success: true,
-    messageId: result.message_id || result.text || 'sent',
-    provider: 'emailjs',
-  };
-};
-
 /**
- * Send an email notification.
- * Prefers Nodemailer SMTP when SMTP_USER and SMTP_PASS are set; otherwise EmailJS.
+ * Send an email notification through Nodemailer SMTP.
  */
-export const sendEmail = async (to, subject, htmlBody, templateParams = {}) => {
+export const sendEmail = async (to, subject, htmlBody) => {
   console.log('[Email] Attempting to send email');
 
   if (!to) {
@@ -222,43 +126,26 @@ export const sendEmail = async (to, subject, htmlBody, templateParams = {}) => {
     return { success: false, error: 'Invalid email format' };
   }
 
-  if (!isSmtpConfigured && !isEmailJsConfigured) {
-    console.warn('[Email] No mail provider configured.');
-    console.warn('[Email] Set SMTP_USER and SMTP_PASS for Nodemailer (Gmail App Password), or EmailJS keys.');
-    return { success: false, error: 'Email not configured', fallback: true };
+  if (!isSmtpConfigured) {
+    console.warn('[Email] SMTP is not configured; email not sent');
+    return { success: false, error: 'SMTP not configured', provider: 'nodemailer' };
   }
 
   try {
-    if (isSmtpConfigured) {
-      const result = await sendViaNodemailer(to, subject, htmlBody);
-      console.log(`[Email] Sent via Nodemailer: ${result.messageId}`);
-      return result;
-    }
-
-    const result = await sendViaEmailJs(to, subject, htmlBody, templateParams);
-    console.log('[Email] Sent via EmailJS');
+    const result = await sendViaNodemailer(to, subject, htmlBody);
+    console.log(`[Email] Sent via Nodemailer: ${result.messageId}`);
     return result;
   } catch (error) {
+    const code = typeof error?.code === 'string' ? error.code : 'unknown';
+    const syscall = typeof error?.syscall === 'string' ? `, syscall: ${error.syscall}` : '';
     console.error(
-      `[Email] Failed to send using ${isSmtpConfigured ? 'Nodemailer' : 'EmailJS'} (code: ${error.code || 'unknown'})`
+      `[Email] Nodemailer SMTP delivery failed (code: ${code}${syscall})`
     );
-
-    if (isSmtpConfigured && isEmailJsConfigured) {
-      try {
-        console.warn('[Email] SMTP failed; trying EmailJS fallback...');
-        const result = await sendViaEmailJs(to, subject, htmlBody, templateParams);
-        console.log('[Email] Sent via EmailJS fallback');
-        return result;
-      } catch {
-        console.error('[Email] EmailJS fallback failed');
-      }
-    }
 
     return {
       success: false,
-      error: error.message,
-      provider: isSmtpConfigured ? 'nodemailer' : 'emailjs',
-      rawError: error.message,
+      error: 'SMTP delivery failed',
+      provider: 'nodemailer',
     };
   }
 };
@@ -400,12 +287,7 @@ export const sendComplaintVerificationEmail = async (to, complaintData) => {
     </html>
   `;
 
-  return await sendEmail(to, subject, htmlBody, {
-    user_name: userName,
-    category: category,
-    complaint_id: complaintId,
-    municipal_office: municipalOfficeName,
-  });
+  return sendEmail(to, subject, htmlBody);
 };
 
 const wrapHtml = (title, inner) => `
@@ -468,10 +350,7 @@ export const sendFakeComplaintEmail = async (to, data = {}) => {
     `
   );
 
-  return sendEmail(to, subject, htmlBody, {
-    user_name: userName,
-    complaint_id: complaintId,
-  });
+  return sendEmail(to, subject, htmlBody);
 };
 
 export const sendContractorAssignmentEmail = async (to, data = {}) => {
@@ -503,10 +382,7 @@ export const sendContractorAssignmentEmail = async (to, data = {}) => {
     `
   );
 
-  return sendEmail(to, subject, htmlBody, {
-    user_name: contractorName,
-    complaint_id: complaintId,
-  });
+  return sendEmail(to, subject, htmlBody);
 };
 
 export const sendContractorPortalReadyEmail = async (to, data = {}) => {
@@ -537,7 +413,7 @@ export const sendContractorPortalReadyEmail = async (to, data = {}) => {
     `
   );
 
-  return sendEmail(to, subject, htmlBody, { user_name: contractorName });
+  return sendEmail(to, subject, htmlBody);
 };
 
 export default sendEmail;
