@@ -27,7 +27,6 @@ export default function ComplaintDetailScreen() {
   const id = firstParam(params.id);
   const notice = firstParam(params.notice);
   const submitted = firstParam(params.submitted) === 'true';
-  const emailSent = firstParam(params.emailSent) === 'true';
   const insets = useSafeAreaInsets();
   const { isAuthenticated } = useAuth();
   const {
@@ -90,11 +89,6 @@ export default function ComplaintDetailScreen() {
           <Text style={styles.successTitle}>Complaint submitted successfully</Text>
           <Text style={styles.successMessage}>
             {notice || 'Your complaint has been recorded and is ready to track.'}
-          </Text>
-          <Text style={styles.successMessage}>
-            {emailSent
-              ? 'A confirmation email has been sent to your registered email address.'
-              : 'Your complaint was saved successfully, but a confirmation email could not be sent.'}
           </Text>
           <Text style={styles.complaintId}>Complaint ID: {complaint._id}</Text>
           <Pressable
