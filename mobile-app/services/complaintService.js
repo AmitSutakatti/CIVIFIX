@@ -28,7 +28,7 @@ export const complaintService = {
       images,
     });
     const res = await api.post('/complaints', formData);
-    return res.data; // { success, message, data: { complaint, requiresReview, reviewFlags, reviewNotice } }
+    return res.data; // Includes emailConfirmationSent in data after successful creation.
   },
 
   // GET /api/complaints/my

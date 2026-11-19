@@ -10,6 +10,7 @@ import {
   COMPLAINT_CATEGORY_VALUES,
   getComplaintCategoryLabel,
 } from '../../constants/complaintCategories.js';
+import { sendComplaintSubmissionEmail } from '../../services/emailService.js';
 
 // @desc    Create new complaint
 // @route   POST /api/complaints
@@ -114,6 +115,23 @@ export const createComplaint = async (req, res) => {
       type: 'status_update',
     });
 
+    let emailConfirmationSent = false;
+    const registeredEmail =
+      typeof req.user.email === 'string' ? req.user.email.trim() : '';
+    if (registeredEmail) {
+      try {
+        const emailResult = await sendComplaintSubmissionEmail(registeredEmail, complaint);
+        emailConfirmationSent = emailResult?.success === true;
+        if (!emailConfirmationSent) {
+          console.warn(`[Complaint] Confirmation email delivery failed for complaint ${complaint._id}`);
+        }
+      } catch {
+        console.warn(`[Complaint] Confirmation email delivery failed for complaint ${complaint._id}`);
+      }
+    } else {
+      console.warn(`[Complaint] Confirmation email skipped for complaint ${complaint._id}: no registered email`);
+    }
+
     const reviewNotice = review.requiresReview
       ? 'Your report was submitted. Similar nearby complaints or recent volume were flagged for municipal review — this does not mean the report is fake.'
       : null;
@@ -126,6 +144,7 @@ export const createComplaint = async (req, res) => {
         requiresReview: review.requiresReview,
         reviewFlags: review.flags,
         reviewNotice,
+        emailConfirmationSent,
       },
     });
   } catch (error) {

@@ -49,8 +49,9 @@
     - `address` (string, optional): Human-readable address
     - `images` (files, max 5): Image files of the issue
   - Each image must be JPEG/JPG, PNG, GIF, or WEBP and no larger than 5 MiB.
-  - Returns: Created complaint object with status "Submitted", review metadata, and the complaint ID.
+  - Returns the created complaint object with its stored status, review metadata, complaint ID, and `data.emailConfirmationSent` (true only when the confirmation email provider accepts delivery; false if email is unavailable or delivery fails). Email delivery failure does not change the successful complaint response.
   - Images are uploaded to ImageKit when configured; if ImageKit is unavailable, the backend falls back to local `/uploads` storage.
+  - Confirmation email uses the authenticated user's registered email. Backend SMTP settings reuse `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, and optional `SMTP_FROM`; do not configure these in the mobile app.
   
 - **GET `/api/complaints/my`**: 
   - Returns all complaints submitted by the authenticated user

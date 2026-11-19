@@ -27,6 +27,7 @@ export default function ComplaintDetailScreen() {
   const id = firstParam(params.id);
   const notice = firstParam(params.notice);
   const submitted = firstParam(params.submitted) === 'true';
+  const emailSent = firstParam(params.emailSent) === 'true';
   const insets = useSafeAreaInsets();
   const { isAuthenticated } = useAuth();
   const {
@@ -90,6 +91,12 @@ export default function ComplaintDetailScreen() {
           <Text style={styles.successMessage}>
             {notice || 'Your complaint has been recorded and is ready to track.'}
           </Text>
+          <Text style={styles.successMessage}>
+            {emailSent
+              ? 'A confirmation email has been sent to your registered email address.'
+              : 'Your complaint was saved successfully, but a confirmation email could not be sent.'}
+          </Text>
+          <Text style={styles.complaintId}>Complaint ID: {complaint._id}</Text>
           <Pressable
             style={styles.dashboardButton}
             onPress={() => router.replace('/(tabs)')}
@@ -178,6 +185,7 @@ const styles = StyleSheet.create({
   successCard: { padding: SPACING.base, borderRadius: RADIUS.lg, backgroundColor: COLORS.white },
   successTitle: { color: COLORS.gray900, fontSize: 16, fontWeight: '800' },
   successMessage: { marginTop: SPACING.xs, color: COLORS.gray600, lineHeight: 20 },
+  complaintId: { marginTop: SPACING.sm, color: COLORS.gray700, fontSize: 13, fontWeight: '700' },
   dashboardButton: {
     marginTop: SPACING.md,
     minHeight: 48,

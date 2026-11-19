@@ -214,6 +214,7 @@ export default function ComplaintPhotosScreen() {
           id: complaint._id,
           notice: response.data.reviewNotice || '',
           submitted: 'true',
+          emailSent: response.data.emailConfirmationSent === true ? 'true' : 'false',
         },
       });
     } catch (error) {

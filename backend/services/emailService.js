@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import https from 'https';
+import { buildComplaintSubmissionEmail } from '../templates/complaintSubmissionEmail.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -77,7 +78,7 @@ const createTransporter = (relaxTls = false) =>
   });
 
 const sendViaNodemailer = async (to, subject, htmlBody) => {
-  console.log(`[Email] Sending via Nodemailer SMTP (${SMTP_HOST}:${SMTP_PORT})`);
+  console.log('[Email] Sending via Nodemailer SMTP');
 
   const mail = {
     from: SMTP_FROM,
@@ -208,7 +209,7 @@ const sendViaEmailJs = async (to, subject, htmlBody, templateParams = {}) => {
  * Prefers Nodemailer SMTP when SMTP_USER and SMTP_PASS are set; otherwise EmailJS.
  */
 export const sendEmail = async (to, subject, htmlBody, templateParams = {}) => {
-  console.log(`[Email] Attempting to send email to: ${to}`);
+  console.log('[Email] Attempting to send email');
 
   if (!to) {
     console.warn('[Email] Missing recipient email address');
@@ -217,7 +218,7 @@ export const sendEmail = async (to, subject, htmlBody, templateParams = {}) => {
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(to)) {
-    console.error(`[Email] Invalid email format: ${to}`);
+    console.warn('[Email] Invalid recipient email format');
     return { success: false, error: 'Invalid email format' };
   }
 
@@ -238,8 +239,9 @@ export const sendEmail = async (to, subject, htmlBody, templateParams = {}) => {
     console.log('[Email] Sent via EmailJS');
     return result;
   } catch (error) {
-    console.error('[Email] Failed to send email:', error.message);
-    console.error('[Email] Error details:', error);
+    console.error(
+      `[Email] Failed to send using ${isSmtpConfigured ? 'Nodemailer' : 'EmailJS'} (code: ${error.code || 'unknown'})`
+    );
 
     if (isSmtpConfigured && isEmailJsConfigured) {
       try {
@@ -247,8 +249,8 @@ export const sendEmail = async (to, subject, htmlBody, templateParams = {}) => {
         const result = await sendViaEmailJs(to, subject, htmlBody, templateParams);
         console.log('[Email] Sent via EmailJS fallback');
         return result;
-      } catch (fallbackError) {
-        console.error('[Email] EmailJS fallback also failed:', fallbackError.message);
+      } catch {
+        console.error('[Email] EmailJS fallback failed');
       }
     }
 
@@ -259,6 +261,11 @@ export const sendEmail = async (to, subject, htmlBody, templateParams = {}) => {
       rawError: error.message,
     };
   }
+};
+
+export const sendComplaintSubmissionEmail = async (to, complaint) => {
+  const { subject, html } = buildComplaintSubmissionEmail(complaint);
+  return sendEmail(to, subject, html);
 };
 
 export const sendComplaintVerificationEmail = async (to, complaintData) => {
