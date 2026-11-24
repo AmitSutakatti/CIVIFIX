@@ -109,6 +109,15 @@ const sendViaNodemailer = async (to, subject, htmlBody) => {
   }
 };
 
+const logEmailFailure = (provider, error) => {
+  const code = typeof error?.code === 'string' ? error.code : 'unknown';
+  const responseCode = Number.isInteger(error?.responseCode)
+    ? `, response: ${error.responseCode}`
+    : '';
+  const syscall = typeof error?.syscall === 'string' ? `, syscall: ${error.syscall}` : '';
+  console.error(`[Email] ${provider} delivery failed (code: ${code}${responseCode}${syscall})`);
+};
+
 /**
  * Send an email notification through Nodemailer SMTP.
  */
@@ -136,12 +145,7 @@ export const sendEmail = async (to, subject, htmlBody) => {
     console.log(`[Email] Sent via Nodemailer: ${result.messageId}`);
     return result;
   } catch (error) {
-    const code = typeof error?.code === 'string' ? error.code : 'unknown';
-    const syscall = typeof error?.syscall === 'string' ? `, syscall: ${error.syscall}` : '';
-    console.error(
-      `[Email] Nodemailer SMTP delivery failed (code: ${code}${syscall})`
-    );
-
+    logEmailFailure('Nodemailer SMTP', error);
     return {
       success: false,
       error: 'SMTP delivery failed',
