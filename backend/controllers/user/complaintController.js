@@ -117,6 +117,26 @@ export const createComplaint = async (req, res) => {
 
     const registeredEmail =
       typeof req.user.email === 'string' ? req.user.email.trim() : '';
+    let emailConfirmationSent = false;
+    if (registeredEmail) {
+      try {
+        const emailResult = await sendComplaintSubmissionEmail(registeredEmail, complaint);
+        emailConfirmationSent = emailResult?.success === true;
+        if (!emailConfirmationSent) {
+          console.warn(
+            `[Complaint] Confirmation email delivery failed for complaint ${complaint._id}: ${emailResult?.error || 'unknown error'}`
+          );
+        }
+      } catch (error) {
+        const code = typeof error?.code === 'string' ? error.code : 'unknown';
+        console.error(
+          `[Complaint] Confirmation email delivery failed for complaint ${complaint._id} (code: ${code})`
+        );
+      }
+    } else {
+      console.warn(`[Complaint] Confirmation email skipped for complaint ${complaint._id}: no registered email`);
+    }
+
     const reviewNotice = review.requiresReview
       ? 'Your report was submitted. Similar nearby complaints or recent volume were flagged for municipal review — this does not mean the report is fake.'
       : null;
@@ -129,23 +149,9 @@ export const createComplaint = async (req, res) => {
         requiresReview: review.requiresReview,
         reviewFlags: review.flags,
         reviewNotice,
+        emailConfirmationSent,
       },
     });
-
-    if (registeredEmail) {
-      setImmediate(async () => {
-        try {
-          const emailResult = await sendComplaintSubmissionEmail(registeredEmail, complaint);
-          if (!emailResult?.success) {
-            console.warn(`[Complaint] Confirmation email delivery failed for complaint ${complaint._id}`);
-          }
-        } catch {
-          console.warn(`[Complaint] Confirmation email delivery failed for complaint ${complaint._id}`);
-        }
-      });
-    } else {
-      console.warn(`[Complaint] Confirmation email skipped for complaint ${complaint._id}: no registered email`);
-    }
   } catch (error) {
     res.status(500).json({
       success: false,

@@ -49,8 +49,8 @@
     - `address` (string, optional): Human-readable address
     - `images` (files, max 5): Image files of the issue
   - Each image must be JPEG/JPG, PNG, GIF, or WEBP and no larger than 5 MiB.
-  - Returns the created complaint object with its stored status, review metadata, and complaint ID. After returning the successful response, the backend attempts to send a confirmation email to the authenticated user's registered email; delivery is asynchronous and is not reported as confirmed in this response.
-  - Email delay or delivery failure does not delay or change the successful complaint response. Delivery failures are logged on the backend.
+  - Returns the created complaint object with its stored status, review metadata, complaint ID, and `data.emailConfirmationSent` (true when the SMTP provider accepts the confirmation email; false if email is unavailable or delivery fails).
+  - After saving the complaint and notification, the backend attempts to send a confirmation email to the authenticated user's registered email before returning the successful response. Email delivery failure does not change the successful complaint response; failures are logged on the backend.
   - Images are uploaded to ImageKit when configured; if ImageKit is unavailable, the backend falls back to local `/uploads` storage.
   - Confirmation email uses the authenticated user's registered email and Nodemailer SMTP only. Configure `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, and optional `SMTP_FROM` on the backend; `EMAILJS_*` variables are not used. Do not configure SMTP settings in the mobile app.
   
