@@ -25,6 +25,8 @@ const publicAnnouncement = (announcement) => ({
     rank: recipient.rank,
     netPoints: recipient.netPoints,
     verifiedComplaints: recipient.verifiedComplaints,
+    pointsEarned: recipient.pointsEarned,
+    pointsDeducted: recipient.pointsDeducted,
     status: recipient.status,
     attempts: recipient.attempts,
     lastAttemptAt: recipient.lastAttemptAt,
@@ -114,12 +116,16 @@ const dispatchPendingRecipients = async (announcement) => {
       if (!citizen || citizen.role !== 'user' || !citizen.email) {
         delivery = { success: false, error: 'Citizen email address is unavailable.' };
       } else {
-        const { subject, html } = buildRewardCeremonyEmail({
+        const { subject, html, text } = buildRewardCeremonyEmail({
           citizenName: recipient.citizenName,
           rank: recipient.rank,
           periodLabel: announcement.periodLabel,
           netPoints: recipient.netPoints,
           verifiedComplaints: recipient.verifiedComplaints,
+          pointsEarned: recipient.pointsEarned,
+          pointsDeducted: recipient.pointsDeducted,
+          pointsEarned: recipient.pointsEarned,
+          pointsDeducted: recipient.pointsDeducted,
           eventName: announcement.eventName,
           venueName: announcement.venueName,
           venueAddress: announcement.venueAddress,
@@ -127,7 +133,7 @@ const dispatchPendingRecipients = async (announcement) => {
           eventTime: announcement.eventTime,
           message: announcement.message,
         });
-        delivery = await sendEmail(citizen.email, subject, html);
+        delivery = await sendEmail(citizen.email, subject, html, text);
       }
     } catch (error) {
       console.error('[Reward announcement] Email delivery failed:', error.message);
@@ -219,6 +225,8 @@ export const createRewardAnnouncement = async (req, res) => {
           rank: citizen.rank,
           netPoints: citizen.netPoints,
           verifiedComplaints: citizen.verifiedComplaints,
+          pointsEarned: citizen.pointsEarned,
+          pointsDeducted: citizen.pointsDeducted,
           status: 'pending',
         })),
       });

@@ -99,6 +99,10 @@ const complaintSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    fakeRewardPointsDeducted: {
+      type: Number,
+      min: 0,
+    },
     closedReason: {
       type: String,
       enum: ['fake', 'duplicate', 'other'],

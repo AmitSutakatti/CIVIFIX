@@ -11,6 +11,8 @@ const recipientSchema = new mongoose.Schema(
     rank: { type: Number, required: true },
     netPoints: { type: Number, required: true },
     verifiedComplaints: { type: Number, required: true },
+    pointsEarned: { type: Number, required: true },
+    pointsDeducted: { type: Number },
     status: {
       type: String,
       enum: ['pending', 'sending', 'sent', 'failed'],

@@ -65,7 +65,7 @@ const createTransporter = (relaxTls = false) =>
     },
   });
 
-const sendViaNodemailer = async (to, subject, htmlBody) => {
+const sendViaNodemailer = async (to, subject, htmlBody, textBody) => {
   console.log('[Email] Sending via Nodemailer SMTP');
 
   const mail = {
@@ -73,7 +73,7 @@ const sendViaNodemailer = async (to, subject, htmlBody) => {
     to,
     subject,
     html: htmlBody,
-    text: htmlToText(htmlBody),
+    text: textBody || htmlToText(htmlBody),
     attachments: TEAM_LOGO_PATH
       ? [
           {
@@ -121,7 +121,7 @@ const logEmailFailure = (provider, error) => {
 /**
  * Send an email notification through Nodemailer SMTP.
  */
-export const sendEmail = async (to, subject, htmlBody) => {
+export const sendEmail = async (to, subject, htmlBody, textBody) => {
   console.log('[Email] Attempting to send email');
 
   if (!to) {
@@ -141,7 +141,7 @@ export const sendEmail = async (to, subject, htmlBody) => {
   }
 
   try {
-    const result = await sendViaNodemailer(to, subject, htmlBody);
+    const result = await sendViaNodemailer(to, subject, htmlBody, textBody);
     console.log(`[Email] Sent via Nodemailer: ${result.messageId}`);
     return result;
   } catch (error) {

@@ -49,7 +49,7 @@ export async function getCurrentRewardLeaderboard(now = new Date()) {
       isFake: true,
       markedFakeAt: { $gte: period.startsAt, $lt: period.endsAt },
     })
-      .select('user')
+      .select('user fakeRewardPointsDeducted')
       .lean(),
   ]);
 
@@ -70,20 +70,35 @@ export async function getCurrentRewardLeaderboard(now = new Date()) {
       citizenId: key,
       name: user.name,
       verifiedComplaints: 0,
+      pointsEarned: 0,
+      pointsDeducted: 0,
+      deductionsAvailable: true,
       netPoints: 0,
     };
     current.verifiedComplaints += 1;
-    current.netPoints += REVIEW_CONFIG.verifiedComplaintReward;
+    current.pointsEarned += REVIEW_CONFIG.verifiedComplaintReward;
+    current.netPoints = current.pointsEarned - current.pointsDeducted;
     totals.set(key, current);
   }
 
   for (const complaint of fakeComplaints) {
     const key = complaint.user?.toString();
     const current = totals.get(key);
-    if (current) current.netPoints -= REVIEW_CONFIG.fakeRewardPenalty;
+    if (current) {
+      if (Number.isFinite(complaint.fakeRewardPointsDeducted)) {
+        current.pointsDeducted += complaint.fakeRewardPointsDeducted;
+      } else {
+        current.deductionsAvailable = false;
+      }
+      current.netPoints = current.pointsEarned - current.pointsDeducted;
+    }
   }
 
-  const citizens = rankLeaderboardCitizens([...totals.values()]);
+  const citizens = rankLeaderboardCitizens([...totals.values()]).map((citizen) => ({
+    ...citizen,
+    pointsDeducted: citizen.deductionsAvailable ? citizen.pointsDeducted : null,
+    deductionsAvailable: undefined,
+  }));
 
   return {
     period: {

@@ -1559,6 +1559,7 @@ export const markComplaintFake = async (req, res) => {
     complaint.closedReason = 'fake';
     complaint.fakeReason = fakeReason;
     complaint.fakeRemarks = remarks.trim();
+    complaint.fakeRewardPointsDeducted = penalty.rewardPointsDeducted;
     complaint.markedFakeBy = officer._id;
     complaint.markedFakeAt = new Date();
     complaint.requiresReview = false;

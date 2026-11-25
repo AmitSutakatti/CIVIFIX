@@ -259,17 +259,23 @@ const RewardLeaderboard = () => {
             ) : (
               <div className="p-5">
                 <div className="rounded-lg border border-gray-200 bg-gray-50 p-5">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">Email preview · Top 5 example recipient</p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">Personalized email preview · {data.leaderboard[0].name}</p>
                   <h3 className="mt-2 text-lg font-bold text-gray-900">{EMAIL_SUBJECT}</h3>
                   <div className="mt-4 rounded-lg bg-white p-5 text-sm leading-6 text-gray-700 shadow-sm">
-                    <p className="text-center text-xl font-bold tracking-widest text-blue-800">CIVIFIX</p>
+                    <p className="text-center text-xl font-bold tracking-widest text-blue-800">🏆 CIVIFIX</p>
+                    <p className="mt-3 text-lg font-bold">YOU DID IT!</p>
+                    <p className="font-semibold">TOP 5 CIVIFIX CONTRIBUTOR</p>
                     <p className="mt-3 font-semibold">Congratulations, {data.leaderboard[0].name}!</p>
-                    <p className="mt-2">You are invited to receive your reward and be honoured for your contribution to CIVIFIX.</p>
-                    <p className="mt-3"><strong>Your leaderboard achievement</strong><br />
-                      Rank: #1<br />
+                    <p className="mt-2">Your contribution has made a real difference! Every genuine complaint you raised helped improve your community. Your dedication and active participation have earned you a place among CIVIFIX's Top 5 Contributors. This achievement belongs to you. Congratulations!</p>
+                    <p className="mt-3"><strong>Your achievement</strong><br />
+                      Rank: #{data.leaderboard[0].rank}<br />
                       Six-month period: {data.period.label}<br />
                       Net leaderboard points: {data.leaderboard[0].netPoints}<br />
-                      Genuine complaints verified: {data.leaderboard[0].verifiedComplaints}
+                      Genuine complaints verified: {data.leaderboard[0].verifiedComplaints}<br />
+                      Points earned: {data.leaderboard[0].pointsEarned}<br />
+                      {data.leaderboard[0].pointsDeducted !== null && data.leaderboard[0].pointsDeducted !== undefined && (
+                        <>Points deducted: {data.leaderboard[0].pointsDeducted}</>
+                      )}
                     </p>
                     <p className="mt-3"><strong>Reward ceremony</strong><br />
                       Event: {form.eventName}<br />
@@ -280,6 +286,7 @@ const RewardLeaderboard = () => {
                     </p>
                     <p className="mt-3"><strong>A message from the Municipal Officer</strong><br />{form.message}</p>
                     <p className="mt-3">Thank you for helping make your community better. We look forward to honouring your contribution.</p>
+                    <p className="mt-3">You are invited to receive your reward and be honoured for your contribution. We look forward to celebrating your achievement.</p>
                     <p className="mt-4 text-center text-xs text-gray-500">CIVIFIX — Building better communities together</p>
                   </div>
                 </div>
