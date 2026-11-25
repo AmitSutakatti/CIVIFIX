@@ -20,6 +20,7 @@ import {
   BarChart3,
   LogOut,
   MessageSquare,
+  Award,
 } from 'lucide-react';
 import MunicipalComplaintMap from '../components/MunicipalComplaintMap';
 import MunicipalAnalytics from '../components/MunicipalAnalytics';
@@ -29,6 +30,7 @@ import QuotationVerificationModal from '../components/QuotationVerificationModal
 import ContractorApplicationsPanel from '../components/ContractorApplicationsPanel';
 import ComplaintReviewModal from '../components/ComplaintReviewModal';
 import PortalLogo from '../components/PortalLogo';
+import RewardLeaderboard from '../components/RewardLeaderboard';
 
 const MunicipalDashboard = () => {
   const { user, logout } = useAuth();
@@ -291,6 +293,16 @@ const MunicipalDashboard = () => {
                 Analytics
               </button>
               <button
+                onClick={() => setActiveTab('leaderboard')}
+                className={`px-6 py-4 text-sm font-medium border-b-2 transition ${
+                  activeTab === 'leaderboard'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <span className="inline-flex items-center gap-2"><Award className="h-4 w-4" /> Leaderboard</span>
+              </button>
+              <button
                 onClick={() => setActiveTab('quotations')}
                 className={`px-6 py-4 text-sm font-medium border-b-2 transition ${
                   activeTab === 'quotations'
@@ -345,6 +357,8 @@ const MunicipalDashboard = () => {
         {activeTab === 'analytics' && (
           <MunicipalAnalytics municipalOffice={municipalOffice} />
         )}
+
+        {activeTab === 'leaderboard' && <RewardLeaderboard />}
 
         {activeTab === 'quotations' && (
           <QuotationsPanel

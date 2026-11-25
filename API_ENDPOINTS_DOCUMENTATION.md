@@ -267,6 +267,21 @@
 
 ---
 
+### Reward Leaderboard and Ceremony Announcement
+
+| Method | Endpoint | Description | Auth Required | Role Required |
+|--------|----------|-------------|---------------|---------------|
+| `GET` | `/api/municipal/rewards/leaderboard` | Get current six-month leaderboard and announcement status | ✅ Yes | MUNICIPAL_OFFICER |
+| `POST` | `/api/municipal/rewards/announcements` | Create the period's one-time ceremony announcement and email backend-selected leaderboard citizens | ✅ Yes | MUNICIPAL_OFFICER |
+| `POST` | `/api/municipal/rewards/announcements/:id/retry` | Retry failed recipient emails only | ✅ Yes | MUNICIPAL_OFFICER |
+
+- The leaderboard uses verified, non-fake complaints within the current UTC half-year period.
+- The backend selects up to five eligible citizens and reads their registered email addresses; clients must not submit recipient addresses or rankings.
+- An announcement is unique per period. A duplicate create returns `409` and the existing announcement. Successfully delivered recipients are never retried.
+- The announcement request body contains `eventName`, `venueName`, `venueAddress`, `eventDate` (`YYYY-MM-DD`), `eventTime` (`HH:mm`), and `message`.
+
+---
+
 ### 5. Contractors Endpoints (`/api/municipal/contractors`)
 
 | Method | Endpoint | Description | Auth Required | Role Required |
@@ -354,7 +369,7 @@
 | Portal | Total Endpoints | Auth Endpoints | Complaint Endpoints | Other Endpoints |
 |--------|----------------|----------------|---------------------|-----------------|
 | **User Portal** | 9 | 3 | 3 | 3 (Notifications, Letters, Health) |
-| **Municipal Portal** | 8 | 2 | 5 | 1 (Analytics, Contractors, Health) |
+| **Municipal Portal** | 11 | 2 | 5 | 4 (Analytics, Contractors, Rewards, Health) |
 
 ### Feature Comparison
 

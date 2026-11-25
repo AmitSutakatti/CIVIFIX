@@ -17,6 +17,11 @@ import {
   submitFieldVerification,
   markComplaintFake,
 } from '../../controllers/municipal/municipalController.js';
+import {
+  createRewardAnnouncement,
+  getRewardLeaderboard,
+  retryFailedRewardAnnouncement,
+} from '../../controllers/municipal/rewardAnnouncementController.js';
 import { protect, authorize } from '../../middleware/authMiddleware.js';
 import { upload } from '../../middleware/uploadMiddleware.js';
 
@@ -47,6 +52,11 @@ router.put('/complaints/:id/close', closeComplaint);
 
 // Analytics
 router.get('/analytics', getAnalytics);
+
+// Six-month reward leaderboard and ceremony announcements
+router.get('/rewards/leaderboard', getRewardLeaderboard);
+router.post('/rewards/announcements', createRewardAnnouncement);
+router.post('/rewards/announcements/:id/retry', retryFailedRewardAnnouncement);
 
 // Contractors
 router.get('/contractors', getContractors);

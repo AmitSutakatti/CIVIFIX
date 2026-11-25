@@ -60,6 +60,11 @@ export const municipalAPI = {
   updateComplaintStatus: (id, data) => api.put(`/municipal/complaints/${id}/status`, data),
   closeComplaint: (id, data) => api.put(`/municipal/complaints/${id}/close`, data),
   getAnalytics: () => api.get('/municipal/analytics'),
+  getRewardLeaderboard: () => api.get('/municipal/rewards/leaderboard'),
+  createRewardAnnouncement: (details) =>
+    api.post('/municipal/rewards/announcements', details),
+  retryRewardAnnouncement: (announcementId) =>
+    api.post(`/municipal/rewards/announcements/${announcementId}/retry`),
   getContractors: () => api.get('/municipal/contractors'),
   getContractorApplications: () => api.get('/municipal/contractor-applications'),
   verifyContractorApplication: (userId, data) =>

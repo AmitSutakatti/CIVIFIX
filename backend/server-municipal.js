@@ -12,6 +12,7 @@ import './models/Notification.js';
 import './models/MunicipalOffice.js';
 import './models/Chat.js';
 import './models/Quotation.js';
+import './models/RewardAnnouncement.js';
 
 // Import routes - Municipal Portal Only
 import authRoutes from './routes/municipal/authRoutes.js';
